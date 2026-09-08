@@ -1,0 +1,679 @@
+// ============================================================
+// dailyS — SERVIÇOS NOVOS
+// Pluggy (Open Finance) · brapi (Bolsa) · AI Insights · Email Summaries
+// ============================================================
+
+
+// ============================================================
+// src/services/integrations/pluggyService.ts
+// ============================================================
+// FLUXO GRATUITO (uso pessoal):
+// 1. Você cria conta no Meu Pluggy (meu.pluggy.ai)
+// 2. Conecta seus bancos lá
+// 3. Pega CLIENT_ID e CLIENT_SECRET no Dashboard da Pluggy
+// 4. O dailyS usa essas credenciais pra puxar saldos/extratos/cartões/investimentos
+//
+// IMPORTANTE: as chamadas à API Pluggy devem rodar no BACKEND
+// (Supabase Edge Function ou servidor Node), NUNCA no frontend,
+// pois o CLIENT_SECRET não pode ser exposto.
+
+import supabaseClient from '@/services/supabaseClient';
+
+interface PluggyAuthResponse {
+  apiKey: string;
+}
+
+class PluggyService {
+  private baseUrl = 'https://api.pluggy.ai';
+  private apiKey: string | null = null;
+  private apiKeyExpiry = 0;
+
+  // ---- Autenticação (gera apiKey temporária de 2h) ----
+  private async getApiKey(): Promise<string> {
+    // Reusa apiKey se ainda válida
+    if (this.apiKey && Date.now() < this.apiKeyExpiry) {
+      return this.apiKey;
+    }
+
+    const response = await fetch(`${this.baseUrl}/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        clientId: process.env.PLUGGY_CLIENT_ID,
+        clientSecret: process.env.PLUGGY_CLIENT_SECRET,
+      }),
+    });
+
+    if (!response.ok) throw new Error('Falha na autenticação Pluggy');
+
+    const data: PluggyAuthResponse = await response.json();
+    this.apiKey = data.apiKey;
+    this.apiKeyExpiry = Date.now() + 2 * 60 * 60 * 1000; // 2h
+    return this.apiKey;
+  }
+
+  private async request(path: string, options: RequestInit = {}) {
+    const apiKey = await this.getApiKey();
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-KEY': apiKey,
+        ...options.headers,
+      },
+    });
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Pluggy API erro (${response.status}): ${err}`);
+    }
+    return response.json();
+  }
+
+  // ---- Listar contas de um Item (conexão bancária) ----
+  async getAccounts(itemId: string) {
+    const data = await this.request(`/accounts?itemId=${itemId}`);
+    return data.results || [];
+  }
+
+  // ---- Transações de uma conta ----
+  async getTransactions(accountId: string, from?: string, to?: string) {
+    let path = `/transactions?accountId=${accountId}&pageSize=500`;
+    if (from) path += `&from=${from}`;
+    if (to) path += `&to=${to}`;
+    const data = await this.request(path);
+    return data.results || [];
+  }
+
+  // ---- Investimentos de um Item ----
+  async getInvestments(itemId: string) {
+    const data = await this.request(`/investments?itemId=${itemId}`);
+    return data.results || [];
+  }
+
+  // ---- Sincronizar TUDO de uma conexão para o Supabase ----
+  async syncConnection(userId: string, connectionId: string, pluggyItemId: string) {
+    const logStart = Date.now();
+    let created = 0;
+    let updated = 0;
+
+    try {
+      // 1. Contas
+      const accounts = await this.getAccounts(pluggyItemId);
+
+      for (const acc of accounts) {
+        // Upsert conta bancária
+        const { data: existing } = await supabaseClient
+          .from('bank_accounts')
+          .select('id')
+          .eq('pluggy_account_id', acc.id)
+          .maybeSingle();
+
+        const accountPayload = {
+          user_id: userId,
+          connection_id: connectionId,
+          pluggy_account_id: acc.id,
+          account_type: acc.type,
+          account_subtype: acc.subtype,
+          name: acc.name,
+          marketing_name: acc.marketingName,
+          number: acc.number,
+          balance: acc.balance,
+          currency: acc.currencyCode || 'BRL',
+          updated_at: new Date().toISOString(),
+        };
+
+        if (existing) {
+          await supabaseClient.from('bank_accounts').update(accountPayload).eq('id', existing.id);
+          updated++;
+        } else {
+          await supabaseClient.from('bank_accounts').insert([accountPayload]);
+          created++;
+        }
+
+        // 1b. Se for cartão de crédito, popular credit_cards
+        if (acc.type === 'CREDIT' && acc.creditData) {
+          await this.syncCreditCard(userId, acc);
+        }
+
+        // 1c. Transações da conta
+        await this.syncTransactions(userId, acc.id);
+      }
+
+      // 2. Investimentos
+      const investments = await this.getInvestments(pluggyItemId);
+      for (const inv of investments) {
+        await this.syncInvestment(userId, connectionId, inv);
+      }
+
+      // 3. Atualizar status da conexão
+      await supabaseClient
+        .from('pluggy_connections')
+        .update({
+          status: 'UPDATED',
+          last_sync_at: new Date().toISOString(),
+        })
+        .eq('id', connectionId);
+
+      // 4. Log
+      await supabaseClient.from('sync_logs').insert([{
+        user_id: userId,
+        source: 'pluggy',
+        module: 'financial',
+        sync_type: 'full',
+        status: 'success',
+        items_created: created,
+        items_updated: updated,
+        duration_seconds: Math.round((Date.now() - logStart) / 1000),
+      }]);
+
+      return { created, updated };
+    } catch (error) {
+      await supabaseClient.from('sync_logs').insert([{
+        user_id: userId,
+        source: 'pluggy',
+        module: 'financial',
+        status: 'error',
+        error_message: error instanceof Error ? error.message : 'Erro desconhecido',
+      }]);
+      throw error;
+    }
+  }
+
+  private async syncCreditCard(userId: string, account: any) {
+    const cd = account.creditData || {};
+    const payload = {
+      user_id: userId,
+      pluggy_account_id: account.id,
+      name: account.name || account.marketingName,
+      brand: cd.brand,
+      level: cd.level,
+      last_four_digits: account.number?.slice(-4),
+      credit_limit: cd.creditLimit,
+      available_limit: cd.availableCreditLimit,
+      current_bill_amount: cd.balanceCloseDate ? account.balance : null,
+      bill_due_day: cd.balanceDueDate ? new Date(cd.balanceDueDate).getDate() : null,
+      minimum_payment: cd.minimumPayment,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: existing } = await supabaseClient
+      .from('credit_cards')
+      .select('id')
+      .eq('pluggy_account_id', account.id)
+      .maybeSingle();
+
+    if (existing) {
+      await supabaseClient.from('credit_cards').update(payload).eq('id', existing.id);
+    } else {
+      await supabaseClient.from('credit_cards').insert([payload]);
+    }
+  }
+
+  private async syncTransactions(userId: string, pluggyAccountId: string) {
+    const transactions = await this.getTransactions(pluggyAccountId);
+    for (const tx of transactions) {
+      const { data: existing } = await supabaseClient
+        .from('transactions')
+        .select('id')
+        .eq('gmail_message_id', `pluggy_${tx.id}`) // reusa campo p/ dedup
+        .maybeSingle();
+
+      if (!existing) {
+        await supabaseClient.from('transactions').insert([{
+          user_id: userId,
+          description: tx.description,
+          amount: Math.abs(tx.amount),
+          transaction_type: tx.amount < 0 ? 'expense' : 'income',
+          category: tx.category || 'Outros',
+          transaction_date: tx.date,
+          status: 'completed',
+          payment_method: tx.paymentData?.paymentMethod || 'card',
+          gmail_message_id: `pluggy_${tx.id}`,
+          notes: 'Importado via Open Finance (Pluggy)',
+        }]);
+      }
+    }
+  }
+
+  private async syncInvestment(userId: string, connectionId: string, inv: any) {
+    const payload = {
+      user_id: userId,
+      connection_id: connectionId,
+      pluggy_investment_id: inv.id,
+      ticker: inv.code,
+      name: inv.name,
+      investment_type: this.mapInvestmentType(inv.type),
+      quantity: inv.quantity,
+      average_price: inv.value,
+      current_value: inv.balance,
+      invested_amount: inv.amount,
+      broker: inv.issuer,
+      currency: inv.currencyCode || 'BRL',
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data: existing } = await supabaseClient
+      .from('investments')
+      .select('id')
+      .eq('pluggy_investment_id', inv.id)
+      .maybeSingle();
+
+    if (existing) {
+      await supabaseClient.from('investments').update(payload).eq('id', existing.id);
+    } else {
+      await supabaseClient.from('investments').insert([payload]);
+    }
+  }
+
+  private mapInvestmentType(pluggyType: string): string {
+    const map: Record<string, string> = {
+      EQUITY: 'STOCK',
+      FUND: 'FUND',
+      FIXED_INCOME: 'FIXED_INCOME',
+      ETF: 'ETF',
+      SECURITY: 'FIXED_INCOME',
+      COE: 'FIXED_INCOME',
+    };
+    return map[pluggyType] || 'FUND';
+  }
+}
+
+export default new PluggyService();
+
+
+// ============================================================
+// src/services/integrations/brapiService.ts
+// ============================================================
+// Cotações da B3 (ações, FIIs, ETFs, BDRs, cripto).
+// Token gratuito em brapi.dev. Alguns tickers de teste
+// (PETR4, VALE3, ITUB4, MGLU3) funcionam sem token.
+
+class BrapiService {
+  private baseUrl = 'https://brapi.dev/api';
+  private token = process.env.VITE_BRAPI_TOKEN || '';
+
+  // ---- Cotação de um ou mais ativos ----
+  async getQuotes(tickers: string[]) {
+    const symbols = tickers.join(',');
+    const url = `${this.baseUrl}/quote/${symbols}?token=${this.token}`;
+
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`brapi erro: ${response.status}`);
+
+    const data = await response.json();
+    return data.results || [];
+  }
+
+  // ---- Atualizar cotações da carteira do usuário ----
+  async updatePortfolioPrices(userId: string) {
+    // Buscar tickers da carteira
+    const { data: investments } = await supabaseClient
+      .from('investments')
+      .select('id, ticker, quantity')
+      .eq('user_id', userId)
+      .not('ticker', 'is', null);
+
+    if (!investments || investments.length === 0) return;
+
+    const tickers = [...new Set(investments.map(i => i.ticker))];
+    const quotes = await this.getQuotes(tickers as string[]);
+
+    for (const quote of quotes) {
+      const matching = investments.filter(i => i.ticker === quote.symbol);
+
+      for (const inv of matching) {
+        const currentValue = (inv.quantity || 0) * (quote.regularMarketPrice || 0);
+        await supabaseClient
+          .from('investments')
+          .update({
+            current_price: quote.regularMarketPrice,
+            current_value: currentValue,
+            price_updated_at: new Date().toISOString(),
+          })
+          .eq('id', inv.id);
+      }
+
+      // Cachear cotação
+      await supabaseClient.from('market_quotes_cache').insert([{
+        ticker: quote.symbol,
+        price: quote.regularMarketPrice,
+        change_percent: quote.regularMarketChangePercent,
+        volume: quote.regularMarketVolume,
+        market_cap: quote.marketCap,
+        raw_data: quote,
+      }]);
+    }
+  }
+
+  // ---- Histórico para gráficos ----
+  async getHistory(ticker: string, range = '3mo', interval = '1d') {
+    const url = `${this.baseUrl}/quote/${ticker}?range=${range}&interval=${interval}&token=${this.token}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`brapi histórico erro: ${response.status}`);
+    const data = await response.json();
+    return data.results?.[0]?.historicalDataPrice || [];
+  }
+
+  // ---- Buscar ativos disponíveis (autocomplete) ----
+  async searchAssets(query: string) {
+    const url = `${this.baseUrl}/available?search=${encodeURIComponent(query)}&token=${this.token}`;
+    const response = await fetch(url);
+    if (!response.ok) return [];
+    const data = await response.json();
+    return data.stocks || [];
+  }
+}
+
+export default new BrapiService();
+
+
+// ============================================================
+// src/services/ai/insightsService.ts
+// ============================================================
+// Gera insights via Claude API. SEMPRE inclui disclaimer:
+// insights NÃO são recomendação de investimento.
+
+import supabaseClient from '@/services/supabaseClient';
+
+interface InsightRequest {
+  userId: string;
+  type: 'investment' | 'financial';
+}
+
+class InsightsService {
+  private disclaimer =
+    'Este conteúdo é gerado automaticamente e tem caráter apenas informativo. ' +
+    'Não constitui recomendação de investimento. Consulte um profissional certificado antes de decidir.';
+
+  // ---- Gerar insights sobre a carteira ----
+  async generateInvestmentInsights(userId: string) {
+    // 1. Buscar carteira
+    const { data: portfolio } = await supabaseClient
+      .from('investment_portfolio_summary')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    const { data: positions } = await supabaseClient
+      .from('investments')
+      .select('ticker, name, investment_type, current_value, profit_loss_percentage')
+      .eq('user_id', userId);
+
+    if (!positions || positions.length === 0) return [];
+
+    // 2. Montar prompt (dados anonimizados: só percentuais e tipos)
+    const prompt = this.buildInvestmentPrompt(portfolio, positions);
+
+    // 3. Chamar Claude API
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    const data = await response.json();
+    const text = data.content
+      ?.filter((b: any) => b.type === 'text')
+      .map((b: any) => b.text)
+      .join('\n') || '';
+
+    // 4. Parsear (esperamos JSON)
+    let insights: any[] = [];
+    try {
+      insights = JSON.parse(text.replace(/```json|```/g, '').trim());
+    } catch {
+      insights = [{ title: 'Análise da carteira', content: text, severity: 'info' }];
+    }
+
+    // 5. Salvar com disclaimer
+    for (const ins of insights) {
+      await supabaseClient.from('investment_insights').insert([{
+        user_id: userId,
+        insight_type: ins.type || 'summary',
+        title: ins.title,
+        content: ins.content,
+        related_tickers: ins.tickers || [],
+        severity: ins.severity || 'info',
+        ai_model: 'claude',
+        is_disclaimer_shown: true,
+      }]);
+    }
+
+    return insights.map(i => ({ ...i, disclaimer: this.disclaimer }));
+  }
+
+  private buildInvestmentPrompt(portfolio: any, positions: any[]): string {
+    return `Você é um analista financeiro educacional. Analise esta carteira e gere insights EDUCATIVOS (não recomendações).
+
+DADOS DA CARTEIRA:
+- Total de posições: ${portfolio?.total_positions || 0}
+- Retorno total: ${portfolio?.total_return_percentage?.toFixed(2) || 0}%
+- Ações: ${portfolio?.stocks_count || 0} | FIIs: ${portfolio?.fiis_count || 0} | Renda Fixa: ${portfolio?.fixed_income_count || 0} | Cripto: ${portfolio?.crypto_count || 0}
+
+POSIÇÕES:
+${positions.map(p => `- ${p.name} (${p.investment_type}): ${p.profit_loss_percentage?.toFixed(1)}%`).join('\n')}
+
+Gere de 2 a 4 insights sobre: diversificação, concentração de risco, e observações gerais.
+Responda APENAS com JSON válido (sem markdown):
+[{"type":"diversification","title":"...","content":"...","severity":"info|positive|warning","tickers":[]}]
+
+Seja educativo, nunca diga "compre" ou "venda". Foque em conceitos.`;
+  }
+
+  // ---- Insights de gastos (financeiro geral) ----
+  async generateFinancialInsights(userId: string) {
+    // Buscar transações do mês
+    const startMonth = new Date();
+    startMonth.setDate(1);
+
+    const { data: transactions } = await supabaseClient
+      .from('transactions')
+      .select('category, amount, transaction_type')
+      .eq('user_id', userId)
+      .gte('transaction_date', startMonth.toISOString().split('T')[0]);
+
+    if (!transactions || transactions.length === 0) return [];
+
+    // Agrupar por categoria
+    const byCategory: Record<string, number> = {};
+    transactions
+      .filter(t => t.transaction_type === 'expense')
+      .forEach(t => {
+        byCategory[t.category] = (byCategory[t.category] || 0) + t.amount;
+      });
+
+    const prompt = `Analise estes gastos do mês e gere 2-3 dicas práticas de economia.
+GASTOS POR CATEGORIA:
+${Object.entries(byCategory).map(([c, v]) => `- ${c}: R$ ${v.toFixed(2)}`).join('\n')}
+
+Responda APENAS com JSON (sem markdown):
+[{"type":"saving_tip","category":"...","title":"...","content":"...","action_suggestion":"...","severity":"info"}]`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 800,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    const data = await response.json();
+    const text = data.content?.filter((b: any) => b.type === 'text').map((b: any) => b.text).join('\n') || '';
+
+    let insights: any[] = [];
+    try {
+      insights = JSON.parse(text.replace(/```json|```/g, '').trim());
+    } catch {
+      insights = [];
+    }
+
+    for (const ins of insights) {
+      await supabaseClient.from('financial_insights').insert([{
+        user_id: userId,
+        insight_type: ins.type || 'saving_tip',
+        category: ins.category,
+        title: ins.title,
+        content: ins.content,
+        action_suggestion: ins.action_suggestion,
+        severity: ins.severity || 'info',
+        ai_model: 'claude',
+      }]);
+    }
+
+    return insights;
+  }
+}
+
+export default new InsightsService();
+
+
+// ============================================================
+// src/services/ai/emailSummaryService.ts
+// ============================================================
+// Puxa emails via Gmail, gera resumos por IA, classifica
+// em pessoal / acadêmico / financeiro.
+
+class EmailSummaryService {
+  // ---- Processar caixa de entrada e gerar resumos ----
+  async summarizeInbox(userId: string, accessToken: string, maxEmails = 20) {
+    // 1. Buscar emails recentes (usando Gmail API)
+    const listUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=${maxEmails}&q=is:unread`;
+    const listResp = await fetch(listUrl, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const listData = await listResp.json();
+    if (!listData.messages) return [];
+
+    const summaries: any[] = [];
+
+    for (const msg of listData.messages) {
+      // 2. Verificar se já processado
+      const { data: existing } = await supabaseClient
+        .from('email_summaries')
+        .select('id')
+        .eq('gmail_message_id', msg.id)
+        .maybeSingle();
+
+      if (existing) continue;
+
+      // 3. Buscar email completo
+      const msgUrl = `https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=full`;
+      const msgResp = await fetch(msgUrl, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      const email = await msgResp.json();
+
+      const headers = email.payload.headers;
+      const subject = headers.find((h: any) => h.name === 'Subject')?.value || '';
+      const from = headers.find((h: any) => h.name === 'From')?.value || '';
+      const date = headers.find((h: any) => h.name === 'Date')?.value || '';
+      const body = this.extractBody(email);
+
+      // 4. Gerar resumo via IA
+      const summary = await this.summarizeEmail(subject, from, body);
+
+      // 5. Salvar
+      const { data: saved } = await supabaseClient
+        .from('email_summaries')
+        .insert([{
+          user_id: userId,
+          gmail_message_id: msg.id,
+          gmail_thread_id: email.threadId,
+          category: summary.category,
+          sender_name: this.parseSenderName(from),
+          sender_email: this.parseSenderEmail(from),
+          original_subject: subject,
+          summary: summary.summary,
+          key_points: summary.keyPoints,
+          action_required: summary.actionRequired,
+          suggested_action: summary.suggestedAction,
+          priority: summary.priority,
+          ai_model: 'claude',
+          received_at: new Date(date).toISOString(),
+        }])
+        .select()
+        .single();
+
+      summaries.push(saved);
+    }
+
+    return summaries;
+  }
+
+  private async summarizeEmail(subject: string, from: string, body: string) {
+    const prompt = `Resuma este email e classifique. Responda APENAS com JSON (sem markdown):
+{
+  "category": "personal|academic|financial|other",
+  "summary": "resumo em 1-2 frases",
+  "keyPoints": ["ponto 1", "ponto 2"],
+  "actionRequired": true|false,
+  "suggestedAction": "ação sugerida ou null",
+  "priority": "low|normal|high"
+}
+
+EMAIL:
+De: ${from}
+Assunto: ${subject}
+Corpo: ${body.slice(0, 1500)}`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 500,
+        messages: [{ role: 'user', content: prompt }],
+      }),
+    });
+
+    const data = await response.json();
+    const text = data.content?.filter((b: any) => b.type === 'text').map((b: any) => b.text).join('\n') || '';
+
+    try {
+      return JSON.parse(text.replace(/```json|```/g, '').trim());
+    } catch {
+      return {
+        category: 'other',
+        summary: subject,
+        keyPoints: [],
+        actionRequired: false,
+        suggestedAction: null,
+        priority: 'normal',
+      };
+    }
+  }
+
+  private extractBody(email: any): string {
+    try {
+      if (email.payload.parts) {
+        const textPart = email.payload.parts.find((p: any) => p.mimeType === 'text/plain');
+        if (textPart?.body?.data) {
+          return atob(textPart.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+        }
+      } else if (email.payload.body?.data) {
+        return atob(email.payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+      }
+    } catch {
+      // ignore
+    }
+    return email.snippet || '';
+  }
+
+  private parseSenderName(from: string): string {
+    const match = from.match(/^(.*?)</);
+    return match ? match[1].trim().replace(/"/g, '') : from;
+  }
+
+  private parseSenderEmail(from: string): string {
+    const match = from.match(/<(.+?)>/);
+    return match ? match[1] : from;
+  }
+}
+
+export default new EmailSummaryService();
