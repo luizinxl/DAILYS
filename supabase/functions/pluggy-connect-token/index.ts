@@ -1,11 +1,7 @@
-// Edge Function: pluggy-connect-token
-// Gera um connectToken temporário para o widget do Pluggy no frontend.
-// O frontend chama esta função; ela usa o CLIENT_SECRET (nunca exposto)
-// e devolve só o token curto e seguro para abrir o widget.
-//
-// Deploy: supabase functions deploy pluggy-connect-token
-// Chamada (frontend): POST { itemId? } -> { connectToken }
+﻿// Deploy: supabase functions deploy pluggy-connect-token
+// Chamada (frontend): POST { itemId? } com header Authorization: Bearer <jwt do usuário> -> { connectToken }
 
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getPluggyApiKey, pluggyFetch } from '../_shared/pluggy.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 
@@ -15,6 +11,28 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Autenticação: exige um usuário Supabase válido antes de emitir o connect token
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Authorization header ausente.' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Token JWT inválido.' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     let itemId: string | undefined;
     try {
       const body = await req.json();
@@ -34,12 +52,12 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ connectToken: data.accessToken }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (err) {
     return new Response(
       JSON.stringify({ error: err instanceof Error ? err.message : 'erro' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   }
 });
