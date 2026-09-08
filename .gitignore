@@ -10,3 +10,6 @@ dist-ssr
 !.vscode/extensions.json
 *.log
 supabase/.temp
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
