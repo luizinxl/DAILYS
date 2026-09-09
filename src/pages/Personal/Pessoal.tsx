@@ -4,11 +4,11 @@ export default function Page() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Pessoal</h1>
-        <p className="text-[#8A92A8] mt-1">Resumos de email, cursos, trilhas, interesses e objetivos.</p>
+        <h1 className="text-3xl font-extrabold tracking-tight text-white">Pessoal</h1>
+        <p className="text-[#8E95A5] text-sm mt-1">Resumos de email, cursos, trilhas, interesses e objetivos.</p>
       </div>
-      <Card variant="personal">
-        <p className="text-sm text-[#B8BFCC]">
+      <Card variant="personal" className="p-6">
+        <p className="text-sm text-[#D1D5DB] leading-relaxed">
           🚧 Módulo em construção. Estrutura, tipos e serviços já estão no repositório —
           o Antigravity expande esta tela a partir daqui.
         </p>

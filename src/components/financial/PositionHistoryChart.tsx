@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -56,7 +57,7 @@ export const PositionHistoryChart: React.FC<Props> = ({ ticker, averagePrice, cl
   const lastClose = history[history.length - 1]?.close || 0;
   const periodReturn = firstClose > 0 ? ((lastClose - firstClose) / firstClose) * 100 : 0;
   const isPositive = periodReturn >= 0;
-  const chartColor = isPositive ? '#10B981' : '#EF4444';
+  const chartColor = isPositive ? '#10B981' : '#F43F5E';
 
   const chartData = history.map((item) => ({
     date: new Date(item.date * 1000).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
@@ -65,42 +66,47 @@ export const PositionHistoryChart: React.FC<Props> = ({ ticker, averagePrice, cl
   }));
 
   return (
-    <div className={`p-6 bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm ${className}`}>
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className={`p-6 bg-[#161924] rounded-2xl border border-[#222736] shadow-lg shadow-black/20 ${className}`}
+    >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-2">
-            <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">{ticker.toUpperCase()}</h3>
+            <h3 className="text-xl font-bold text-white">{ticker.toUpperCase()}</h3>
             <span
-              className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+              className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
                 isPositive
-                  ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400'
-                  : 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-400'
+                  ? 'bg-[#10B981]/15 text-[#10B981] border-[#10B981]/30'
+                  : 'bg-[#F43F5E]/15 text-[#F43F5E] border-[#F43F5E]/30'
               }`}
             >
               {periodReturn > 0 ? `+${periodReturn.toFixed(2)}%` : `${periodReturn.toFixed(2)}%`}
             </span>
           </div>
           <div className="flex items-center gap-3 mt-1">
-            <span className="text-2xl font-black text-zinc-900 dark:text-zinc-50">
+            <span className="text-2xl font-black text-white">
               {lastClose > 0 ? formatCurrency(lastClose) : '--'}
             </span>
             {!!averagePrice && averagePrice > 0 && (
-              <span className="text-xs text-zinc-500">
-                PM: <strong className="text-zinc-700 dark:text-zinc-300">{formatCurrency(averagePrice)}</strong>
+              <span className="text-xs text-[#8E95A5]">
+                PM: <strong className="text-zinc-300">{formatCurrency(averagePrice)}</strong>
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
+        <div className="flex items-center bg-[#12141F] border border-[#222736] p-1 rounded-xl">
           {RANGE_LABELS.map((r) => (
             <button
               key={r.value}
               onClick={() => setRange(r.value)}
               className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
                 range === r.value
-                  ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 shadow-sm'
-                  : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200'
+                  ? 'bg-[#7C5CFC] text-white shadow-sm shadow-[#7C5CFC]/40'
+                  : 'text-[#8E95A5] hover:text-white'
               }`}
             >
               {r.label}
@@ -111,9 +117,9 @@ export const PositionHistoryChart: React.FC<Props> = ({ ticker, averagePrice, cl
 
       <div className="h-64 w-full relative">
         {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center text-zinc-400 text-sm">Carregando…</div>
+          <div className="absolute inset-0 flex items-center justify-center text-[#8E95A5] text-sm">Carregando…</div>
         ) : chartData.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-zinc-400 text-sm">
+          <div className="h-full flex items-center justify-center text-[#8E95A5] text-sm">
             Histórico não disponível para {ticker}
           </div>
         ) : (
@@ -121,15 +127,15 @@ export const PositionHistoryChart: React.FC<Props> = ({ ticker, averagePrice, cl
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id={`gradient-${ticker}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={chartColor} stopOpacity={0.25} />
+                  <stop offset="5%" stopColor={chartColor} stopOpacity={0.3} />
                   <stop offset="95%" stopColor={chartColor} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" className="dark:stroke-zinc-800" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#9CA3AF' }} tickLine={false} axisLine={false} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1E2332" />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#6B7280' }} tickLine={false} axisLine={false} />
               <YAxis
                 domain={['dataMin - 1', 'dataMax + 1']}
-                tick={{ fontSize: 11, fill: '#9CA3AF' }}
+                tick={{ fontSize: 11, fill: '#6B7280' }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(val) => `R$${val.toFixed(0)}`}
@@ -139,8 +145,8 @@ export const PositionHistoryChart: React.FC<Props> = ({ ticker, averagePrice, cl
                   if (active && payload && payload.length) {
                     const d: any = payload[0].payload;
                     return (
-                      <div className="bg-zinc-900 text-white text-xs p-3 rounded-lg shadow-xl border border-zinc-700">
-                        <p className="text-zinc-400 mb-1">{d.fullDate}</p>
+                      <div className="bg-[#12141F] text-white text-xs p-3 rounded-xl shadow-xl border border-[#2B3145]">
+                        <p className="text-[#8E95A5] mb-1">{d.fullDate}</p>
                         <p className="font-bold text-sm">{formatCurrency(d.close)}</p>
                       </div>
                     );
@@ -151,17 +157,27 @@ export const PositionHistoryChart: React.FC<Props> = ({ ticker, averagePrice, cl
               {!!averagePrice && averagePrice > 0 && (
                 <ReferenceLine
                   y={averagePrice}
-                  stroke="#6366F1"
+                  stroke="#7C5CFC"
                   strokeDasharray="4 4"
-                  label={{ value: `PM ${formatCurrency(averagePrice)}`, fill: '#6366F1', fontSize: 10, position: 'top' }}
+                  label={{ value: `PM ${formatCurrency(averagePrice)}`, fill: '#9B82FF', fontSize: 10, position: 'top' }}
                 />
               )}
-              <Area type="monotone" dataKey="close" stroke={chartColor} strokeWidth={2} fillOpacity={1} fill={`url(#gradient-${ticker})`} />
+              <Area
+                type="monotone"
+                dataKey="close"
+                stroke={chartColor}
+                strokeWidth={2}
+                fillOpacity={1}
+                fill={`url(#gradient-${ticker})`}
+                isAnimationActive={true}
+                animationDuration={1000}
+                animationEasing="ease-out"
+              />
             </AreaChart>
           </ResponsiveContainer>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
