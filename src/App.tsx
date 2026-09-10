@@ -8,6 +8,7 @@ import Pessoal from '@/pages/Personal/Pessoal';
 import Casa from '@/pages/Household/Casa';
 import Agenda from '@/pages/Agenda';
 import Lembretes from '@/pages/Lembretes';
+import Configuracoes from '@/pages/Settings/Configuracoes';
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="/casa" element={<Casa />} />
         <Route path="/agenda" element={<Agenda />} />
         <Route path="/lembretes" element={<Lembretes />} />
+        <Route path="/configuracoes" element={<Configuracoes />} />
       </Routes>
     </Layout>
   );

@@ -2,20 +2,20 @@ import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, BookOpen, Wallet, TrendingUp,
   Home, User, Calendar, Bell,
-} from 'lucide-react';
+  Settings } from 'lucide-react';
 import clsx from 'clsx';
 import Logo from '@/components/common/Logo';
 
 const groups = [
   { title: 'Geral', items: [{ to: '/', label: 'Dashboard', icon: LayoutDashboard }] },
   {
-    title: 'Acadêmico',
+    title: 'AcadÃƒÂªmico',
     items: [{ to: '/tarefas', label: 'Tarefas', icon: BookOpen }],
   },
   {
     title: 'Financeiro',
     items: [
-      { to: '/financas', label: 'Finanças', icon: Wallet },
+      { to: '/financas', label: 'FinanÃƒÂ§as', icon: Wallet },
       { to: '/investimentos', label: 'Investimentos', icon: TrendingUp },
     ],
   },
@@ -27,10 +27,11 @@ const groups = [
     ],
   },
   {
-    title: 'Organização',
+    title: 'OrganizaÃƒÂ§ÃƒÂ£o',
     items: [
       { to: '/agenda', label: 'Agenda', icon: Calendar },
       { to: '/lembretes', label: 'Lembretes', icon: Bell },
+  { to: '/configuracoes', label: 'ConfiguraÃ§Ãµes', icon: Settings },
     ],
   },
 ];
@@ -47,7 +48,7 @@ export function Sidebar() {
           <div className="w-2 h-2 rounded-full bg-[#10B981] shadow-sm shadow-[#10B981]/50" title="Online" />
         </div>
 
-        {/* Grupos de navegação */}
+        {/* Grupos de navegaÃƒÂ§ÃƒÂ£o */}
         <div className="space-y-4 px-3">
           {groups.map((g) => (
             <div key={g.title}>
@@ -102,7 +103,7 @@ export function Sidebar() {
             </span>
           </div>
           <p className="text-[11px] text-[#8E95A5] leading-relaxed">
-            Sincronização em tempo real ativa
+            SincronizaÃƒÂ§ÃƒÂ£o em tempo real ativa
           </p>
         </div>
       </div>
