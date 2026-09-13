@@ -43,6 +43,26 @@ export function CalendarGrid({
     onMonthChange(new Date(year, month + 1, 1));
   };
 
+  const dragStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const wasDragRef = React.useRef(false);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    dragStartRef.current = { x: e.clientX, y: e.clientY };
+    wasDragRef.current = false;
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!dragStartRef.current) return;
+    const dx = Math.abs(e.clientX - dragStartRef.current.x);
+    const dy = Math.abs(e.clientY - dragStartRef.current.y);
+    if (dx > 6 || dy > 6) wasDragRef.current = true;
+  };
+
+  const handleDayClick = (dateStr: string) => {
+    if (wasDragRef.current) return;
+    onSelectDate(dateStr);
+  };
+
   const monthNames = [
     'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
@@ -89,7 +109,7 @@ export function CalendarGrid({
       </div>
 
       {/* Weekdays */}
-      <div className="grid grid-cols-7 gap-3 mb-3">
+      <div className="grid grid-cols-7 gap-2 mb-2">
         {['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'].map((day, i) => (
           <div key={i} className="text-left pl-2 text-xs font-semibold text-[#636A7E]">
             {day}
@@ -98,10 +118,16 @@ export function CalendarGrid({
       </div>
 
       {/* Days Grid */}
-      <div className="grid grid-cols-7 auto-rows-fr gap-3 flex-1">
+      {(() => {
+        const totalRows = Math.ceil(days.length / 7);
+        return (
+          <div
+            className="grid grid-cols-7 gap-2 flex-1"
+            style={{ gridTemplateRows: `repeat(${totalRows}, minmax(88px, 1fr))` }}
+          >
         {days.map((date, i) => {
           if (!date) {
-            return <div key={`empty-${i}`} className="min-h-0 bg-[#1A1D27]/30 rounded-2xl border border-[#1E2230]/50" />;
+            return <div key={`empty-${i}`} className="bg-[#1A1D27]/30 rounded-2xl border border-[#1E2230]/50" />;
           }
 
           const dateStr = date.toISOString().substring(0, 10);
@@ -113,9 +139,13 @@ export function CalendarGrid({
           return (
             <button
               key={dateStr}
-              onClick={() => onSelectDate(dateStr)}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onClick={() => handleDayClick(dateStr)}
               className={clsx(
-                'min-h-0 rounded-2xl p-3 flex flex-col items-start justify-start relative transition-all border text-left overflow-hidden group',
+                'rounded-2xl p-3 flex flex-col items-start justify-start relative transition-all border text-left overflow-hidden group',
+                'active:scale-[0.97] active:opacity-90',
+                'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7C5CFC]',
                 isSelected
                   ? 'bg-gradient-to-br from-[#7C5CFC] to-[#5C3CE0] border-[#9074FF] text-white shadow-lg shadow-[#7C5CFC]/25'
                   : 'bg-[#1A1D27] border-[#282E42] hover:border-[#384058] hover:bg-[#1E2230]',
@@ -151,7 +181,9 @@ export function CalendarGrid({
             </button>
           );
         })}
-      </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

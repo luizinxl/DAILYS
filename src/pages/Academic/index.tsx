@@ -107,7 +107,7 @@ export default function AcademicDashboard() {
       </div>
 
       {/* Main Layout: Unified Dashboard Panel */}
-      <div className="bg-[#12141C] border border-[#1E2230] rounded-3xl p-6 flex flex-col lg:flex-row gap-8 flex-1 min-h-0">
+      <div className="bg-[#12141C] border border-[#1E2230] rounded-3xl p-6 flex flex-col lg:flex-row gap-8 flex-1 min-h-[700px]">
         {/* Calendar Area (Left - Takes ~65%) */}
         <div className="w-full lg:w-[65%] shrink-0 flex flex-col min-h-0">
           <CalendarGrid 

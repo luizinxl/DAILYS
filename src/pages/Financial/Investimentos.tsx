@@ -1,6 +1,8 @@
 import { Card } from '@/components/common/Card';
 import { useInvestments } from '../../hooks/useInvestments';
 import { useMarketOverview } from '../../hooks/useMarketOverview';
+import { useGlobalMarket } from '../../hooks/useGlobalMarket';
+import { SYMBOL_LABELS } from '../../services/integrations/googleFinanceService';
 import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
 import { PortfolioAllocationChart } from '../../components/financial/PortfolioAllocationChart';
 import { PortfolioEvolutionChart } from '../../components/financial/PortfolioEvolutionChart';
@@ -18,6 +20,7 @@ function formatPrice(value: number) {
 export default function Page() {
   const { positions, portfolioSummary, loading, error, refresh } = useInvestments();
   const { overview, loading: overviewLoading, error: overviewError, refresh: refreshOverview } = useMarketOverview();
+  const { overview: globalOverview, loading: globalLoading, error: globalError, refresh: refreshGlobal } = useGlobalMarket();
 
   const { colors } = useModuleColors();
   const themeColor = colors['investimentos'] || defaultModuleColors['investimentos'] || '#3B82F6';
@@ -25,6 +28,7 @@ export default function Page() {
   const handleRefresh = () => {
     refresh();
     refreshOverview();
+    refreshGlobal();
   };
 
   return (
@@ -119,6 +123,75 @@ export default function Page() {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Google Finance — Mercado Global */}
+      <Card variant="financial" className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-white">Mercado Global</h2>
+          <span className="text-xs text-[#8E95A5]">via Google Finance</span>
+        </div>
+
+        {globalError && (
+          <p className="text-sm text-[#F43F5E]">{globalError}</p>
+        )}
+
+        {!globalError && globalLoading && !globalOverview && (
+          <p className="text-sm text-[#8E95A5]">Carregando mercado global...</p>
+        )}
+
+        {!globalError && globalOverview && (
+          <div className="space-y-5">
+            {/* Índices Globais */}
+            <div>
+              <p className="text-xs text-[#8E95A5] mb-3 uppercase tracking-wide">Índices</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {globalOverview.indices.map((q) => (
+                  <div key={q.symbol} className="rounded-xl bg-[#1D2029] border border-[#232735] p-4">
+                    <p className="text-xs text-[#8E95A5] mb-1">{SYMBOL_LABELS[q.symbol] ?? q.shortName}</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-lg font-bold text-white">
+                        {q.regularMarketPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                      <span className={`text-xs font-semibold ${
+                        q.regularMarketChangePercent >= 0 ? 'text-[#2ECC71]' : 'text-[#F43F5E]'
+                      }`}>
+                        {q.regularMarketChangePercent >= 0 ? '+' : ''}{q.regularMarketChangePercent.toFixed(2)}%
+                      </span>
+                    </div>
+                    <span className={`mt-1 inline-block text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                      q.marketState === 'REGULAR' ? 'bg-[#2ECC71]/10 text-[#2ECC71]' : 'bg-[#334155]/40 text-[#64748B]'
+                    }`}>
+                      {q.marketState === 'REGULAR' ? 'Aberto' : 'Fechado'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Moedas */}
+            <div>
+              <p className="text-xs text-[#8E95A5] mb-3 uppercase tracking-wide">Câmbio & Cripto</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {globalOverview.currencies.map((q) => (
+                  <div key={q.symbol} className="rounded-xl bg-[#1D2029] border border-[#232735] p-4">
+                    <p className="text-xs text-[#8E95A5] mb-1">{SYMBOL_LABELS[q.symbol] ?? q.shortName}</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-lg font-bold text-white">
+                        {q.regularMarketPrice.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                      <span className={`text-xs font-semibold ${
+                        q.regularMarketChangePercent >= 0 ? 'text-[#2ECC71]' : 'text-[#F43F5E]'
+                      }`}>
+                        {q.regularMarketChangePercent >= 0 ? '+' : ''}{q.regularMarketChangePercent.toFixed(2)}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
