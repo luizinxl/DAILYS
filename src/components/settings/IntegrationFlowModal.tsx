@@ -97,7 +97,7 @@ export function IntegrationFlowModal({ isOpen, onClose, integrationKey }: Integr
               <h2 className="text-lg font-bold text-white capitalize flex items-center gap-2">
                 Fluxo de Integração: <span className="text-[#8E95A5]">{integrationKey}</span>
               </h2>
-              <p className="text-xs text-[#8E95A5]">Como os dados fluem nesta conexão (estilo n8n).</p>
+              <p className="text-xs text-[#8E95A5]">Como os dados fluem nesta conexão.</p>
             </div>
             <button 
               onClick={onClose}

@@ -34,7 +34,7 @@ export default function Page() {
           <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2" style={{ color: themeColor }}>
             Investimentos
           </h1>
-          <p className="text-[#8E95A5] text-sm mt-1">Carteira em tempo real (brapi) e insights de mercado.</p>
+          <p className="text-[#8E95A5] text-sm mt-1">Carteira em tempo real (brapi & Google Finance) e insights de mercado.</p>
         </div>
         <button
           onClick={handleRefresh}
@@ -49,7 +49,7 @@ export default function Page() {
       <Card variant="financial" className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-white">Visão geral do mercado</h2>
-          <span className="text-xs text-[#8E95A5]">via brapi</span>
+          <span className="text-xs text-[#8E95A5]">via brapi & Google Finance</span>
         </div>
 
         {overviewError && (

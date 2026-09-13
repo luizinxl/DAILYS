@@ -17,7 +17,7 @@ import {
 import clsx from 'clsx';
 import Logo from '@/components/common/Logo';
 import { useModuleColors, routeToKeyMap, defaultModuleColors } from '@/hooks/useModuleColors';
-const modules = [
+export const sidebarModules = [
   { to: '/', label: 'Início', icon: Home },
   { to: '/estudos', label: 'Estudos', icon: GraduationCap },
   { to: '/tarefas', label: 'Tarefas', icon: House },
@@ -42,7 +42,7 @@ function ColorPickerModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
           </button>
         </div>
         <div className="p-4 space-y-4 max-h-[60vh] overflow-y-auto">
-          {modules.map((m) => {
+          {sidebarModules.map((m) => {
             const moduleKey = routeToKeyMap[m.to] || 'inicio';
             const currentColor = colors[moduleKey] || defaultModuleColors[moduleKey] || '#7C5CFC';
             return (
@@ -103,7 +103,7 @@ export function Sidebar() {
         {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
       </button>
 
-      <div className="flex-1 flex flex-col pt-6 pb-4 overflow-hidden items-center">
+      <div className="flex-1 flex flex-col pt-6 pb-4 overflow-hidden items-center min-h-0">
         {/* Logo */}
         <div className={clsx("pb-8 flex w-full", isCollapsed ? "justify-center px-0" : "justify-start px-6")}>
           <Logo size="sm" showWordmark={!isCollapsed} className={isCollapsed ? "justify-center" : "justify-start"} />
@@ -111,12 +111,11 @@ export function Sidebar() {
 
         {/* Módulos Container (Pill) */}
         <div className={clsx(
-          "flex-1 flex flex-col transition-all duration-300",
+          "flex-1 flex flex-col transition-all duration-300 min-h-0 w-full",
           isCollapsed ? "w-[64px]" : "w-[calc(100%-24px)]"
         )}>
           {!isCollapsed && (
-            <div className="flex items-center justify-between px-4 pb-3">
-              <span className="text-[11px] uppercase tracking-wider text-[#636A7E] font-semibold">MÓDULOS</span>
+            <div className="flex items-center justify-end px-4 pb-3 shrink-0">
               <button 
                 onClick={() => setIsColorPickerOpen(true)}
                 className="text-[#636A7E] hover:text-white transition-colors"
@@ -128,10 +127,10 @@ export function Sidebar() {
           )}
           
           <div className={clsx(
-            "bg-[#1A1D27]/80 flex flex-col gap-2 py-2 overflow-y-auto custom-scrollbar border border-[#232735]",
+            "bg-[#1A1D27]/80 flex flex-col gap-2 py-2 overflow-y-auto custom-scrollbar border border-[#232735] min-h-0",
             isCollapsed ? "rounded-full px-2 items-center" : "rounded-3xl px-2"
           )}>
-            {modules.map((it) => {
+            {sidebarModules.map((it) => {
               const moduleKey = routeToKeyMap[it.to] || 'inicio';
               const moduleColor = colors[moduleKey] || defaultModuleColors[moduleKey] || '#7C5CFC';
               return (

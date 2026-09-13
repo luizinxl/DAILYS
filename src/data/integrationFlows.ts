@@ -1,6 +1,6 @@
 import { Node, Edge } from '@xyflow/react';
 
-export type IntegrationKey = 'supabase' | 'brapi' | 'pluggy' | 'gmail' | 'calendar' | 'sendgrid' | 'ava' | 'demo';
+export type IntegrationKey = 'supabase' | 'brapi' | 'pluggy' | 'gmail' | 'calendar' | 'sendgrid' | 'ava' | 'demo' | 'googlefinance';
 
 export interface FlowData {
   nodes: Node[];
@@ -195,7 +195,7 @@ export const integrationFlows: Record<IntegrationKey, FlowData> = {
       {
         id: '1',
         position: { x: 0, y: 150 },
-        data: { label: 'Webhook (Trigger)', icon: 'Globe', color: '#10B981', subline: 'Recebe os dados do usuário' },
+        data: { label: 'Webhook (Trigger)', icon: 'Globe', color: '#10B981', subline: 'Recebe nova transação' },
         type: 'customNode',
       },
       {
@@ -213,25 +213,25 @@ export const integrationFlows: Record<IntegrationKey, FlowData> = {
       {
         id: '4',
         position: { x: 900, y: 0 },
-        data: { label: 'Banco de Dados', icon: 'Database', color: '#2ECC71', subline: 'Salva registro (Caminho A)' },
+        data: { label: 'Banco de Dados', icon: 'Database', color: '#2ECC71', subline: 'Salva no extrato (Caminho A)' },
         type: 'customNode',
       },
       {
         id: '5',
         position: { x: 1200, y: 0 },
-        data: { label: 'Alerta Slack', icon: 'Bot', color: '#E11D48', subline: 'Notifica time de vendas' },
+        data: { label: 'Notificação', icon: 'Bell', color: '#E11D48', subline: 'Alerta de alto gasto' },
         type: 'customNode',
       },
       {
         id: '6',
         position: { x: 900, y: 300 },
-        data: { label: 'Sync CRM', icon: 'Briefcase', color: '#0284C7', subline: 'Atualiza cliente (Caminho B)' },
+        data: { label: 'Sync Planilha', icon: 'Briefcase', color: '#0284C7', subline: 'Atualiza backup (Caminho B)' },
         type: 'customNode',
       },
       {
         id: '7',
         position: { x: 1200, y: 300 },
-        data: { label: 'Motor de Analytics', icon: 'Activity', color: '#059669', subline: 'Gera métricas' },
+        data: { label: 'Módulo de Finanças', icon: 'Activity', color: '#059669', subline: 'Atualiza saldo' },
         type: 'customNode',
       },
       {
@@ -250,6 +250,25 @@ export const integrationFlows: Record<IntegrationKey, FlowData> = {
       { id: 'e6-7', source: '6', target: '7', animated: true, style: { stroke: '#059669', strokeWidth: 2 } },
       { id: 'e5-8', source: '5', target: '8', animated: false, style: { stroke: '#334155' } },
       { id: 'e7-8', source: '7', target: '8', animated: false, style: { stroke: '#334155' } }
+    ]
+  },
+  googlefinance: {
+    nodes: [
+      {
+        id: '1',
+        position: { x: 0, y: 100 },
+        data: { label: 'Modus App', icon: 'Smartphone', color: '#7C5CFC', subline: 'Módulo de Investimentos' },
+        type: 'customNode',
+      },
+      {
+        id: '2',
+        position: { x: 350, y: 100 },
+        data: { label: 'Google Finance', icon: 'Globe', color: '#10B981', subline: 'Cotações e Portfólio Global' },
+        type: 'customNode',
+      }
+    ],
+    edges: [
+      { id: 'e1-2', source: '1', target: '2', animated: true, style: { stroke: '#10B981', strokeDasharray: '5,5' } }
     ]
   }
 };

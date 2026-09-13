@@ -2,8 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/common/Card';
 import { Home, CheckSquare, Wallet, TrendingUp, GraduationCap, Calendar, User, Home as House } from 'lucide-react';
 import { supabase } from '../../config/supabase';
-import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
+import { useModuleColors, defaultModuleColors, routeToKeyMap } from '@/hooks/useModuleColors';
 import { IntegrationFlowModal } from '@/components/settings/IntegrationFlowModal';
+import { sidebarModules } from '@/components/layout/Sidebar';
 import { IntegrationKey } from '@/data/integrationFlows';
 
 interface Receipt {
@@ -64,16 +65,6 @@ function IntegrationRow({ name, status, detail, onClick }: { name: string; statu
   );
 }
 
-const modulesColorList = [
-  { key: 'inicio', label: 'Início', icon: Home },
-  { key: 'tarefas', label: 'Tarefas', icon: CheckSquare },
-  { key: 'financas', label: 'Finanças', icon: Wallet },
-  { key: 'investimentos', label: 'Investimentos', icon: TrendingUp },
-  { key: 'academico', label: 'Acadêmico', icon: GraduationCap },
-  { key: 'agenda', label: 'Agenda', icon: Calendar },
-  { key: 'pessoal', label: 'Pessoal', icon: User },
-  { key: 'casa', label: 'Casa', icon: House },
-];
 
 const PREDEFINED_COLORS = [
   '#7C5CFC', '#1C64EF', '#22C55E', '#14B8A6', 
@@ -201,12 +192,13 @@ export default function Page() {
         </div>
         
         <div className="space-y-4 mt-6">
-          {modulesColorList.map(mod => {
-            const currentColor = colors[mod.key] || defaultModuleColors[mod.key] || '#7C5CFC';
+          {sidebarModules.map(mod => {
+            const moduleKey = routeToKeyMap[mod.to] || 'inicio';
+            const currentColor = colors[moduleKey] || defaultModuleColors[moduleKey] || '#7C5CFC';
             const isCustomColor = !PREDEFINED_COLORS.some(pc => pc.toUpperCase() === currentColor.toUpperCase());
             
             return (
-              <div key={mod.key} className="flex items-center justify-between border-b border-[#232735] pb-4 last:border-0 last:pb-0">
+              <div key={moduleKey} className="flex items-center justify-between border-b border-[#232735] pb-4 last:border-0 last:pb-0">
                 <div className="flex items-center gap-3">
                   <div 
                     className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
@@ -221,7 +213,7 @@ export default function Page() {
                   {PREDEFINED_COLORS.map(c => (
                     <button
                       key={c}
-                      onClick={() => updateColor(mod.key, c)}
+                      onClick={() => updateColor(moduleKey, c)}
                       className={`w-6 h-6 rounded-full transition-all border-2 ${currentColor.toUpperCase() === c.toUpperCase() ? 'border-white scale-110' : 'border-transparent hover:scale-110'}`}
                       style={{ backgroundColor: c }}
                       title={c}
@@ -243,7 +235,7 @@ export default function Page() {
                      <input 
                        type="color"
                        value={currentColor}
-                       onChange={(e) => updateColor(mod.key, e.target.value)}
+                       onChange={(e) => updateColor(moduleKey, e.target.value)}
                        className="absolute inset-0 w-[200%] h-[200%] -top-1/2 -left-1/2 opacity-0 cursor-pointer"
                      />
                   </div>
@@ -269,6 +261,7 @@ export default function Page() {
 
         <IntegrationRow name="Supabase" status="ok" detail="Banco de dados e autenticação" onClick={() => setSelectedFlow('supabase')} />
         <IntegrationRow name="brapi (cotações)" status="pendente" detail="Sem token configurado — dólar e maiores altas/baixas ficam vazios" onClick={() => setSelectedFlow('brapi')} />
+        <IntegrationRow name="Google Finance" status="nao_configurado" detail="Integração para cotações e portfólio global" onClick={() => setSelectedFlow('googlefinance')} />
         <IntegrationRow name="Pluggy (Open Finance)" status="nao_configurado" detail="Conecte pelo card na aba Início ou Investimentos" onClick={() => setSelectedFlow('pluggy')} />
         <IntegrationRow name="Gmail (leitura de faturas)" status="nao_configurado" detail="Precisa de credenciais OAuth do Google Cloud" onClick={() => setSelectedFlow('gmail')} />
         <IntegrationRow name="Google Calendar (somente leitura)" status="nao_configurado" detail="Precisa de credenciais OAuth do Google Cloud" onClick={() => setSelectedFlow('calendar')} />
