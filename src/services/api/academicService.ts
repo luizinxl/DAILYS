@@ -110,8 +110,10 @@ export async function fetchCalendarMonth(
   year: number,
   month: number
 ): Promise<CalendarDayInfo[]> {
-  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-  const endDate = `${year}-${String(month).padStart(2, '0')}-31`;
+  const lastDay = new Date(year, month, 0).getDate();
+  const monthStr = String(month).padStart(2, '0');
+  const startDate = `${year}-${monthStr}-01`;
+  const endDate = `${year}-${monthStr}-${String(lastDay).padStart(2, '0')}`;
 
   const { data, error } = await supabase
     .from('academic_tasks')
@@ -179,15 +181,18 @@ export async function fetchCalendarMonth(
       if (task.exam_period_start && task.exam_period_end) {
         const start = new Date(task.exam_period_start);
         const end = new Date(task.exam_period_end);
-        const current = new Date(start);
-        while (current <= end) {
-          const key = current.toISOString().substring(0, 10);
-          const day = getOrCreate(key);
-          day.isExamPeriod = true;
-          day.hasExam = true;
-          current.setDate(current.getDate() + 1);
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime()) && start <= end) {
+          const current = new Date(start);
+          while (current <= end) {
+            const key = current.toISOString().substring(0, 10);
+            const day = getOrCreate(key);
+            day.isExamPeriod = true;
+            day.hasExam = true;
+            current.setDate(current.getDate() + 1);
+          }
         }
       }
+
     }
   }
 
