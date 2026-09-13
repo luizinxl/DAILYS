@@ -92,7 +92,7 @@ export function Sidebar() {
   return (
     <>
     <aside className={clsx(
-      "shrink-0 bg-[#12141C] flex flex-col justify-between min-h-screen transition-all duration-300 relative border-r border-[#1E2230]",
+      "shrink-0 bg-[#12141C] flex flex-col justify-between h-full transition-all duration-300 relative border-r border-[#1E2230]",
       isCollapsed ? "w-[90px]" : "w-[240px]"
     )}>
       {/* Botão de Toggle */}

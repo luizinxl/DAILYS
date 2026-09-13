@@ -103,9 +103,9 @@ export default function AcademicDashboard() {
       </div>
 
       {/* Main Layout: Unified Dashboard Panel */}
-      <div className="bg-[#12141C] border border-[#1E2230] rounded-3xl p-6 flex flex-col xl:flex-row gap-8 h-auto xl:h-[calc(100vh-280px)] min-h-[700px]">
+      <div className="bg-[#12141C] border border-[#1E2230] rounded-3xl p-6 flex flex-col lg:flex-row gap-8 h-auto lg:h-[calc(100vh-280px)] min-h-[700px]">
         {/* Calendar Area (Left - Takes ~65%) */}
-        <div className="w-full xl:w-[65%] shrink-0">
+        <div className="w-full lg:w-[65%] shrink-0 flex flex-col">
           <CalendarGrid 
             currentDate={currentMonth}
             onMonthChange={handleMonthChange}
@@ -117,7 +117,7 @@ export default function AcademicDashboard() {
         </div>
         
         {/* Scheduled / Daily Panel Area (Right - Takes ~35%) */}
-        <div className="w-full xl:w-[35%] flex flex-col border-t xl:border-t-0 xl:border-l border-[#1E2230] pt-8 xl:pt-0 xl:pl-8">
+        <div className="w-full lg:w-[35%] flex flex-col border-t lg:border-t-0 lg:border-l border-[#1E2230] pt-8 lg:pt-0 lg:pl-8">
           <DailyPanel 
             selectedDate={selectedDate} 
             tasks={selectedDayTasks} 

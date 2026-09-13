@@ -24,6 +24,7 @@
 * { box-sizing: border-box; }
 
 body {
+  zoom: 90%;
   margin: 0;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
   background: var(--bg-primary);
