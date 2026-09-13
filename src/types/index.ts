@@ -3,20 +3,66 @@
 export type Priority = 'P1_critical' | 'P2_high' | 'P3_normal' | 'P4_low';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'overdue' | 'cancelled';
 
+export type AcademicTaskType =
+  | 'assignment'
+  | 'quiz'
+  | 'peer_review'
+  | 'reading'
+  | 'exam'
+  | 'forum'
+  | 'other';
+
 export interface AcademicTask {
   id: string;
   user_id: string;
+  id_moodle?: string;
   title: string;
   description?: string;
+  summary?: string;
   course?: string;
+  course_code?: string;
   professor?: string;
-  task_type?: string;
+  task_type?: AcademicTaskType;
+  task_subtype?: string;
   status: TaskStatus;
+  start_date?: string;
   due_date: string;
+  submitted_at?: string;
   days_remaining?: number;
   priority: Priority;
+  priority_score?: number;
   estimated_hours?: number;
+  has_no_deadline?: boolean;
+  ava_url?: string;
+  submission_link?: string;
+  /** Avaliação entre pares: total de colegas para avaliar */
+  peer_review_total?: number;
+  /** Avaliação entre pares: quantos já avaliou */
+  peer_review_done?: number;
+  /** Prova presencial: polo */
+  exam_location?: string;
+  /** Prova presencial: início do período */
+  exam_period_start?: string;
+  /** Prova presencial: fim do período */
+  exam_period_end?: string;
+  /** Leitura: semana */
+  week_number?: number;
+  synced_at?: string;
+  moodle_status?: string;
+  last_change_detected_at?: string;
+  notification_sent?: boolean;
   created_at?: string;
+  updated_at?: string;
+}
+
+export interface AcademicSyncState {
+  id: string;
+  user_id: string;
+  last_morning_sync?: string;
+  last_evening_sync?: string;
+  last_login_success?: boolean;
+  last_error?: string;
+  updated_at?: string;
 }
 
 export type TransactionType = 'income' | 'expense' | 'transfer' | 'saving';

@@ -1,7 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
 import Layout from '@/components/layout/Layout';
 import Dashboard from '@/pages/Dashboard';
-import Tarefas from '@/pages/Tarefas';
+import AcademicDashboard from '@/pages/Academic';
 import Financas from '@/pages/Financial/Financas';
 import Investimentos from '@/pages/Financial/Investimentos';
 import Pessoal from '@/pages/Personal/Pessoal';
@@ -15,7 +15,8 @@ export default function App() {
     <Layout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
-        <Route path="/tarefas" element={<Tarefas />} />
+        <Route path="/academico" element={<AcademicDashboard />} />
+        <Route path="/tarefas" element={<AcademicDashboard />} />
         <Route path="/financas" element={<Financas />} />
         <Route path="/investimentos" element={<Investimentos />} />
         <Route path="/pessoal" element={<Pessoal />} />

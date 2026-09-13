@@ -1,0 +1,26 @@
+{
+  "name": "dailys-academic-scraper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AVA Moodle Univesp scraper — extrai atividades, prazos, provas e sincroniza com Supabase",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "morning": "node dist/index.js --mode morning",
+    "evening": "node dist/index.js --mode evening",
+    "dry-run": "node dist/index.js --dry-run",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.4",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "puppeteer": "^23.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.5.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  }
+}
