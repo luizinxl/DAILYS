@@ -1,6 +1,7 @@
 import { Card } from '@/components/common/Card';
 import { useInvestments } from '../../hooks/useInvestments';
 import { useMarketOverview } from '../../hooks/useMarketOverview';
+import { useModuleColors } from '@/hooks/useModuleColors';
 import { PortfolioAllocationChart } from '../../components/financial/PortfolioAllocationChart';
 import { PortfolioEvolutionChart } from '../../components/financial/PortfolioEvolutionChart';
 import { PositionHistoryChart } from '../../components/financial/PositionHistoryChart';
@@ -18,6 +19,9 @@ export default function Page() {
   const { positions, portfolioSummary, loading, error, refresh } = useInvestments();
   const { overview, loading: overviewLoading, error: overviewError, refresh: refreshOverview } = useMarketOverview();
 
+  const { colors, defaultModuleColors } = useModuleColors();
+  const themeColor = colors['investimentos'] || defaultModuleColors['investimentos'] || '#3B82F6';
+
   const handleRefresh = () => {
     refresh();
     refreshOverview();
@@ -27,13 +31,16 @@ export default function Page() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">Investimentos</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2" style={{ color: themeColor }}>
+            Investimentos
+          </h1>
           <p className="text-[#8E95A5] text-sm mt-1">Carteira em tempo real (brapi) e insights de mercado.</p>
         </div>
         <button
           onClick={handleRefresh}
           disabled={loading || overviewLoading}
-          className="px-4 py-2 rounded-xl bg-[#7C5CFC] hover:bg-[#6D4AEF] disabled:opacity-50 text-white text-sm font-medium shadow-md shadow-[#7C5CFC]/25 transition-all"
+          className="px-4 py-2 rounded-xl disabled:opacity-50 text-white text-sm font-medium transition-all shadow-lg active:scale-95"
+          style={{ backgroundColor: themeColor, boxShadow: `0 4px 14px -4px ${themeColor}80` }}
         >
           {loading || overviewLoading ? 'Atualizando...' : 'Atualizar cotações'}
         </button>

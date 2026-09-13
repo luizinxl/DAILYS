@@ -17,8 +17,8 @@ export const defaultModuleColors: ModuleColors = {
 // Map old routes to new keys (if necessary, though we'll use keys directly now)
 export const routeToKeyMap: Record<string, string> = {
   '/': 'inicio',
-  '/academico': 'academico',
-  '/casa': 'casa',
+  '/estudos': 'academico',
+  '/tarefas': 'casa',
   '/compras': 'compras', // Wait, compras is not in the list, but it exists in sidebar. We can fallback to default. Let's just use what was requested.
   '/financas': 'financas',
   '/investimentos': 'investimentos',

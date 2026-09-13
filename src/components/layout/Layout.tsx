@@ -14,7 +14,7 @@ export function Layout({ children }: { children: ReactNode }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="flex-1 overflow-y-auto p-6 md:p-8"
+      className="flex-1 overflow-y-auto p-6 md:p-8 flex flex-col"
     >
       {children}
     </motion.main>

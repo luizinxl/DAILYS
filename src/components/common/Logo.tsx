@@ -22,11 +22,11 @@ const sizeClasses = {
 
 const SplitRingIcon = ({ className }: { className?: string }) => (
   <svg
-    viewBox="0 0 24 24"
+    viewBox="-2 -2 28 28"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
-    style={{ minWidth: '1em', minHeight: '1em' }}
+    style={{ minWidth: '1em', minHeight: '1em', overflow: 'visible' }}
   >
     <path
       d="M10.5 2.5 A9.5 9.5 0 0 0 10.5 21.5"
@@ -49,6 +49,7 @@ const WordmarkSVG = ({ className }: { className?: string }) => (
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
     className={className}
+    style={{ overflow: 'visible' }}
   >
     {/* M */}
     <path 

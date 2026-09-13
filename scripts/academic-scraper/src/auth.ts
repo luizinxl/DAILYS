@@ -122,7 +122,12 @@ async function performLogin(page: Page): Promise<boolean> {
     log('Enviando credenciais...');
     const submitBtn = await page.$('button[type="submit"], input[type="submit"], .btn-primary');
     if (submitBtn) {
-      await submitBtn.click();
+      try {
+        await submitBtn.click();
+      } catch (err) {
+        log('Botão não clicável, forçando clique via JS...');
+        await page.evaluate((btn) => (btn as HTMLElement).click(), submitBtn);
+      }
     } else {
       await page.keyboard.press('Enter');
     }

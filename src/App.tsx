@@ -5,7 +5,7 @@ import AcademicDashboard from '@/pages/Academic';
 import Financas from '@/pages/Financial/Financas';
 import Investimentos from '@/pages/Financial/Investimentos';
 import Pessoal from '@/pages/Personal/Pessoal';
-import Casa from '@/pages/Household/Casa';
+import Tarefas from '@/pages/Tarefas';
 import Compras from '@/pages/Household/Compras';
 import Agenda from '@/pages/Agenda';
 import Lembretes from '@/pages/Lembretes';
@@ -18,12 +18,11 @@ export default function App() {
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/academico" element={<AcademicDashboard />} />
-          <Route path="/tarefas" element={<AcademicDashboard />} />
+          <Route path="/estudos" element={<AcademicDashboard />} />
+          <Route path="/tarefas" element={<Tarefas />} />
           <Route path="/financas" element={<Financas />} />
           <Route path="/investimentos" element={<Investimentos />} />
           <Route path="/pessoal" element={<Pessoal />} />
-          <Route path="/casa" element={<Casa />} />
           <Route path="/compras" element={<Compras />} />
           <Route path="/agenda" element={<Agenda />} />
           <Route path="/lembretes" element={<Lembretes />} />

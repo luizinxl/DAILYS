@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Trash2, Search, Plus, CheckCircle2, Circle } from 'lucide-react';
 import Card from '@/components/common/Card';
 import { useShoppingList } from '@/hooks/useShoppingList';
+import { useModuleColors } from '@/hooks/useModuleColors';
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -20,6 +21,9 @@ export default function Compras() {
     lookupPrice,
   } = useShoppingList();
 
+  const { colors, defaultModuleColors } = useModuleColors();
+  const themeColor = colors['compras'] || defaultModuleColors['compras'] || '#F59E0B';
+
   const [newItemName, setNewItemName] = useState('');
   const [newItemQty, setNewItemQty] = useState(1);
 
@@ -34,7 +38,9 @@ export default function Compras() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">Compras</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2" style={{ color: themeColor }}>
+          Compras
+        </h1>
         <p className="text-[#8E95A5] text-sm mt-1">
           Gerencie sua lista de compras com integração de preços do Atacadão.
         </p>
@@ -67,7 +73,8 @@ export default function Compras() {
           />
           <button
             type="submit"
-            className="flex items-center justify-center gap-1 bg-[#7C5CFC] hover:bg-[#6B4CE0] text-white text-sm font-semibold rounded-lg px-4 py-2 transition-colors"
+            className="flex items-center justify-center gap-1 text-white text-sm font-semibold rounded-lg px-4 py-2 transition-transform active:scale-95"
+            style={{ backgroundColor: themeColor }}
           >
             <Plus size={16} />
           </button>
@@ -111,7 +118,8 @@ export default function Compras() {
                   onClick={() => lookupPrice(item.id, item.name)}
                   disabled={lookingUp === item.id}
                   title="Buscar preço no Atacadão"
-                  className="text-[#64748B] hover:text-[#7C5CFC] disabled:opacity-40"
+                  className="transition-colors disabled:opacity-40"
+                  style={{ color: lookingUp === item.id ? themeColor : '#64748B' }}
                 >
                   <Search size={16} className={lookingUp === item.id ? 'animate-pulse' : ''} />
                 </button>

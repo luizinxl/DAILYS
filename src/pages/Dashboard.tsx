@@ -13,6 +13,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useModuleColors } from '@/hooks/useModuleColors';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -70,12 +71,15 @@ const performanceData = [
 ];
 
 export default function Dashboard() {
+  const { colors, defaultModuleColors } = useModuleColors();
+  const themeColor = colors['inicio'] || defaultModuleColors['inicio'] || '#7C5CFC';
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       {/* Cabeçalho do Dashboard */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white">
+          <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2" style={{ color: themeColor }}>
             Seu dia
           </h1>
           <p className="text-[#8E95A5] text-sm mt-1">

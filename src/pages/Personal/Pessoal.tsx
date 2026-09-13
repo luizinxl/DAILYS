@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card } from '@/components/common/Card';
 import { usePersonal, type PersonalStatus } from '../../hooks/usePersonal';
+import { useModuleColors } from '@/hooks/useModuleColors';
 
 const statusLabel: Record<PersonalStatus, string> = {
   em_andamento: 'Em andamento',
@@ -14,15 +15,18 @@ const statusColor: Record<PersonalStatus, string> = {
   pausado: '#8E95A5',
 };
 
-function ProgressBar({ value }: { value: number }) {
+function ProgressBar({ value, color }: { value: number, color: string }) {
   return (
     <div className="w-full h-1.5 rounded-full bg-[#1D2029] overflow-hidden">
-      <div className="h-full bg-[#818CF8]" style={{ width: `${Math.min(100, Math.max(0, value))}%` }} />
+      <div className="h-full" style={{ width: `${Math.min(100, Math.max(0, value))}%`, backgroundColor: color }} />
     </div>
   );
 }
 
 export default function Page() {
+  const { colors, defaultModuleColors } = useModuleColors();
+  const themeColor = colors['pessoal'] || defaultModuleColors['pessoal'] || '#F43F5E';
+
   const { courses, goals, loading, error, addCourse, deleteCourse, addGoal, deleteGoal, updateCourse, updateGoal } = usePersonal();
   const [courseTitle, setCourseTitle] = useState('');
   const [courseInstitution, setCourseInstitution] = useState('');
@@ -48,7 +52,9 @@ export default function Page() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">Pessoal</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2" style={{ color: themeColor }}>
+          Pessoal
+        </h1>
         <p className="text-[#8E95A5] text-sm mt-1">Cursos, metas e trilhas de conhecimento.</p>
       </div>
 
@@ -76,7 +82,7 @@ export default function Page() {
             placeholder="Instituição (opcional)"
             className="flex-1 rounded-lg bg-[#1D2029] border border-[#232735] px-3 py-2 text-sm text-white placeholder:text-[#64748B] outline-none focus:border-[#818CF8]"
           />
-          <button type="submit" className="px-4 py-2 rounded-lg bg-[#818CF8] hover:bg-[#6366F1] text-white text-sm font-medium transition-colors">
+          <button type="submit" className="px-4 py-2 rounded-lg text-white text-sm font-medium transition-transform active:scale-95" style={{ backgroundColor: themeColor }}>
             Adicionar
           </button>
         </form>
@@ -108,7 +114,7 @@ export default function Page() {
                 </div>
               </div>
               <div className="mt-3">
-                <ProgressBar value={c.progress} />
+                <ProgressBar value={c.progress} color={themeColor} />
               </div>
             </div>
           ))}
@@ -133,7 +139,7 @@ export default function Page() {
             placeholder="Categoria (opcional)"
             className="flex-1 rounded-lg bg-[#1D2029] border border-[#232735] px-3 py-2 text-sm text-white placeholder:text-[#64748B] outline-none focus:border-[#818CF8]"
           />
-          <button type="submit" className="px-4 py-2 rounded-lg bg-[#818CF8] hover:bg-[#6366F1] text-white text-sm font-medium transition-colors">
+          <button type="submit" className="px-4 py-2 rounded-lg text-white text-sm font-medium transition-transform active:scale-95" style={{ backgroundColor: themeColor }}>
             Adicionar
           </button>
         </form>
@@ -165,7 +171,7 @@ export default function Page() {
                 </div>
               </div>
               <div className="mt-3">
-                <ProgressBar value={g.progress} />
+                <ProgressBar value={g.progress} color={themeColor} />
               </div>
             </div>
           ))}

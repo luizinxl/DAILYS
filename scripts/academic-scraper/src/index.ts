@@ -124,13 +124,56 @@ async function main() {
       allItems.push(...courseItems);
     }
 
-    // Deduplicar globalmente
-    const seen = new Set<string>();
-    const uniqueItems = allItems.filter((item) => {
-      if (seen.has(item.idMoodle)) return false;
-      seen.add(item.idMoodle);
-      return true;
-    });
+    // Deduplicar globalmente (por ID e por similaridade de Título)
+    // Isso evita que um evento do calendário (status: pending) duplique uma atividade
+    // da página da disciplina (que possui o status real de 'completed'/'submitted').
+    const uniqueItemsMap = new Map<string, ScrapedItem>();
+
+    for (const item of allItems) {
+      let matchedExistingId: string | null = null;
+
+      // 1. Tenta achar correspondência exata de ID
+      if (uniqueItemsMap.has(item.idMoodle)) {
+        matchedExistingId = item.idMoodle;
+      } else {
+        // 2. Tenta achar por título aproximado no mesmo curso
+        const normalizedTitle = item.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+        for (const existing of uniqueItemsMap.values()) {
+          if (existing.courseCode === item.courseCode) {
+            const existingTitle = existing.title.toLowerCase().replace(/[^a-z0-9]/g, '');
+            // Se as strings limpas forem iguais ou uma estiver contida na outra (com tamanho razoável)
+            if (
+              normalizedTitle === existingTitle ||
+              (normalizedTitle.includes(existingTitle) && existingTitle.length > 5) ||
+              (existingTitle.includes(normalizedTitle) && normalizedTitle.length > 5)
+            ) {
+              matchedExistingId = existing.idMoodle;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!matchedExistingId) {
+        uniqueItemsMap.set(item.idMoodle, item);
+      } else {
+        const existing = uniqueItemsMap.get(matchedExistingId)!;
+        const isExistingCal = existing.idMoodle.startsWith('cal_');
+        const isNewCourse = !item.idMoodle.startsWith('cal_') && !item.idMoodle.startsWith('exam_dashboard');
+
+        if (isExistingCal && isNewCourse) {
+          // Substitui item genérico de calendário pelo item real da disciplina
+          uniqueItemsMap.delete(existing.idMoodle);
+          uniqueItemsMap.set(item.idMoodle, item);
+        } else if (item.status === 'completed' || item.status === 'submitted') {
+          // Se o novo item tiver um status mais "evoluído", atualizamos o existente
+          existing.status = item.status;
+          if (item.submittedAt) existing.submittedAt = item.submittedAt;
+        }
+      }
+    }
+
+    const uniqueItems = Array.from(uniqueItemsMap.values());
 
     log(`Total de itens únicos extraídos: ${uniqueItems.length}`);
 

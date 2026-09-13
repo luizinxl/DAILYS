@@ -1,10 +1,16 @@
 import { Card } from '@/components/common/Card';
+import { useModuleColors } from '@/hooks/useModuleColors';
 
 export default function Page() {
+  const { colors, defaultModuleColors } = useModuleColors();
+  const themeColor = colors['agenda'] || defaultModuleColors['agenda'] || '#7C5CFC';
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">Agenda</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2" style={{ color: themeColor }}>
+          Agenda
+        </h1>
         <p className="text-[#8E95A5] text-sm mt-1">Sua agenda unificada.</p>
       </div>
       <Card variant="academic" className="p-6">

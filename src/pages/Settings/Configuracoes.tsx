@@ -3,6 +3,8 @@ import { Card } from '@/components/common/Card';
 import { Home, CheckSquare, Wallet, TrendingUp, GraduationCap, Calendar, User, Home as House } from 'lucide-react';
 import { supabase } from '../../config/supabase';
 import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
+import { IntegrationFlowModal } from '@/components/settings/IntegrationFlowModal';
+import { IntegrationKey } from '@/data/integrationFlows';
 
 interface Receipt {
   id: string;
@@ -35,7 +37,7 @@ function parseReceiptText(text: string) {
   return { merchant, total };
 }
 
-function IntegrationRow({ name, status, detail }: { name: string; status: 'ok' | 'pendente' | 'nao_configurado'; detail: string }) {
+function IntegrationRow({ name, status, detail, onClick }: { name: string; status: 'ok' | 'pendente' | 'nao_configurado'; detail: string; onClick?: () => void }) {
   const colors: Record<string, string> = {
     ok: '#2ECC71',
     pendente: '#F5A623',
@@ -47,7 +49,10 @@ function IntegrationRow({ name, status, detail }: { name: string; status: 'ok' |
     nao_configurado: 'Não configurado',
   };
   return (
-    <div className="flex items-center justify-between py-2.5 border-b border-[#232735] last:border-b-0">
+    <button 
+      onClick={onClick}
+      className="w-full flex items-center justify-between py-3 px-2 rounded-lg border-b border-[#232735] hover:bg-[#202535] transition-colors text-left group"
+    >
       <div>
         <p className="text-sm text-white font-medium">{name}</p>
         <p className="text-xs text-[#8E95A5] mt-0.5">{detail}</p>
@@ -55,7 +60,7 @@ function IntegrationRow({ name, status, detail }: { name: string; status: 'ok' |
       <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ color: colors[status], backgroundColor: `${colors[status]}1A` }}>
         {labels[status]}
       </span>
-    </div>
+    </button>
   );
 }
 
@@ -83,6 +88,7 @@ export default function Page() {
   const [ocrError, setOcrError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { colors, updateColor, restoreDefaults } = useModuleColors();
+  const [selectedFlow, setSelectedFlow] = useState<IntegrationKey | null>(null);
 
   const fetchReceipts = useCallback(async () => {
     setLoadingReceipts(true);
@@ -250,19 +256,36 @@ export default function Page() {
 
       <Card variant="default" className="p-6">
         <h2 className="text-lg font-semibold text-white mb-3">Integrações</h2>
-        <IntegrationRow name="Supabase" status="ok" detail="Banco de dados e autenticação" />
-        <IntegrationRow name="brapi (cotações)" status="pendente" detail="Sem token configurado — dólar e maiores altas/baixas ficam vazios" />
-        <IntegrationRow name="Pluggy (Open Finance)" status="nao_configurado" detail="Conecte pelo card na aba Início ou Investimentos" />
-        <IntegrationRow name="Gmail (leitura de faturas)" status="nao_configurado" detail="Precisa de credenciais OAuth do Google Cloud" />
-        <IntegrationRow name="Google Calendar (somente leitura)" status="nao_configurado" detail="Precisa de credenciais OAuth do Google Cloud" />
-        <IntegrationRow name="Notificações (SendGrid + push)" status="nao_configurado" detail="Precisa de uma API key do SendGrid" />
-        <IntegrationRow name="Agente AVA (Antigravity)" status="nao_configurado" detail="Bloqueado — aguardando decisão sobre credenciais de login" />
+        
+        {/* Demonstração */}
+        <div className="mb-4 p-2 rounded-xl border-2 border-[#7C5CFC]/30 bg-[#7C5CFC]/10 transition-colors hover:border-[#7C5CFC]/50">
+          <IntegrationRow 
+            name="Visualizador de Fluxos (Demo)" 
+            status="ok" 
+            detail="Fluxo complexo completo gerado como exemplo do visual n8n" 
+            onClick={() => setSelectedFlow('demo')} 
+          />
+        </div>
+
+        <IntegrationRow name="Supabase" status="ok" detail="Banco de dados e autenticação" onClick={() => setSelectedFlow('supabase')} />
+        <IntegrationRow name="brapi (cotações)" status="pendente" detail="Sem token configurado — dólar e maiores altas/baixas ficam vazios" onClick={() => setSelectedFlow('brapi')} />
+        <IntegrationRow name="Pluggy (Open Finance)" status="nao_configurado" detail="Conecte pelo card na aba Início ou Investimentos" onClick={() => setSelectedFlow('pluggy')} />
+        <IntegrationRow name="Gmail (leitura de faturas)" status="nao_configurado" detail="Precisa de credenciais OAuth do Google Cloud" onClick={() => setSelectedFlow('gmail')} />
+        <IntegrationRow name="Google Calendar (somente leitura)" status="nao_configurado" detail="Precisa de credenciais OAuth do Google Cloud" onClick={() => setSelectedFlow('calendar')} />
+        <IntegrationRow name="Notificações (SendGrid + push)" status="nao_configurado" detail="Precisa de uma API key do SendGrid" onClick={() => setSelectedFlow('sendgrid')} />
+        <IntegrationRow name="Agente AVA (Antigravity)" status="nao_configurado" detail="Bloqueado — aguardando decisão sobre credenciais de login" onClick={() => setSelectedFlow('ava')} />
       </Card>
 
       <Card variant="default" className="p-6">
         <h2 className="text-lg font-semibold text-white mb-1">Preferências</h2>
         <p className="text-xs text-[#8E95A5]">Tema escuro (fundo preto puro) fixo no momento. Mais preferências chegam aqui conforme os módulos forem sendo implementados.</p>
       </Card>
+
+      <IntegrationFlowModal 
+        isOpen={!!selectedFlow} 
+        onClose={() => setSelectedFlow(null)} 
+        integrationKey={selectedFlow} 
+      />
     </div>
   );
 }

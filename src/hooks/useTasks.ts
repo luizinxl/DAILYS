@@ -1,16 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/config/supabase';
 
-export interface HouseholdTask {
+export interface TaskItem {
   id: string;
   title: string;
   done: boolean;
-  due_date: string | null;
+  due_date: string | null;      // Opcional, usado como prazo final
+  scheduled_date: string | null; // Novo: quando a tarefa deve ser feita (ex: Hoje)
+  reminder_at: string | null;    // Novo: data/hora do lembrete
+  priority: 'low' | 'medium' | 'high';
+  notes: string | null;
   created_at: string;
 }
 
-export function useHouseholdTasks() {
-  const [tasks, setTasks] = useState<HouseholdTask[]>([]);
+export function useTasks() {
+  const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,11 +24,12 @@ export function useHouseholdTasks() {
     const { data, error: fetchError } = await supabase
       .from('household_tasks')
       .select('*')
-      .order('due_date', { ascending: true, nullsFirst: false });
+      .order('created_at', { ascending: false });
+      
     if (fetchError) {
       setError(fetchError.message);
     } else {
-      setTasks((data as HouseholdTask[]) || []);
+      setTasks((data as TaskItem[]) || []);
     }
     setLoading(false);
   }, []);
@@ -33,11 +38,20 @@ export function useHouseholdTasks() {
     fetchTasks();
   }, [fetchTasks]);
 
-  const addTask = async (title: string, dueDate?: string) => {
-    if (!title.trim()) return;
+  const addTask = async (taskData: Partial<TaskItem>) => {
+    if (!taskData.title?.trim()) return;
     const { error: insertError } = await supabase
       .from('household_tasks')
-      .insert({ title: title.trim(), due_date: dueDate || null, done: false });
+      .insert({
+        title: taskData.title.trim(),
+        due_date: taskData.due_date || null,
+        scheduled_date: taskData.scheduled_date || null,
+        reminder_at: taskData.reminder_at || null,
+        priority: taskData.priority || 'medium',
+        notes: taskData.notes || null,
+        done: false
+      });
+      
     if (insertError) {
       setError(insertError.message);
       return;
@@ -45,11 +59,12 @@ export function useHouseholdTasks() {
     await fetchTasks();
   };
 
-  const toggleDone = async (id: string, done: boolean) => {
+  const updateTask = async (id: string, updates: Partial<TaskItem>) => {
     const { error: updateError } = await supabase
       .from('household_tasks')
-      .update({ done })
+      .update(updates)
       .eq('id', id);
+      
     if (updateError) {
       setError(updateError.message);
       return;
@@ -57,11 +72,16 @@ export function useHouseholdTasks() {
     await fetchTasks();
   };
 
+  const toggleDone = async (id: string, done: boolean) => {
+    return updateTask(id, { done });
+  };
+
   const deleteTask = async (id: string) => {
     const { error: deleteError } = await supabase
       .from('household_tasks')
       .delete()
       .eq('id', id);
+      
     if (deleteError) {
       setError(deleteError.message);
       return;
@@ -69,5 +89,5 @@ export function useHouseholdTasks() {
     await fetchTasks();
   };
 
-  return { tasks, loading, error, addTask, toggleDone, deleteTask, refresh: fetchTasks };
+  return { tasks, loading, error, addTask, updateTask, toggleDone, deleteTask, refresh: fetchTasks };
 }

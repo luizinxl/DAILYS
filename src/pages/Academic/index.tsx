@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { useAcademic } from '@/hooks/useAcademic';
+import { useModuleColors } from '@/hooks/useModuleColors';
 import { CalendarGrid } from './components/CalendarGrid';
 import { DailyPanel } from './components/DailyPanel';
 import { BookOpen, AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function AcademicDashboard() {
+  const { colors, defaultModuleColors } = useModuleColors();
+  const themeColor = colors['academico'] || defaultModuleColors['academico'] || '#7C5CFC';
+
   const {
     tasks,
     syncState,
@@ -35,21 +39,21 @@ export default function AcademicDashboard() {
   if (loading && tasks.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7C5CFC]" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: themeColor }} />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 max-w-[1400px] mx-auto w-full">
+    <div className="flex flex-col flex-1 space-y-6 max-w-[1400px] mx-auto w-full">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 rounded-xl bg-[#7C5CFC]/15 flex items-center justify-center">
-              <BookOpen size={20} className="text-[#7C5CFC]" />
+            <div className="w-10 h-10 rounded-xl bg-opacity-15 flex items-center justify-center" style={{ backgroundColor: `${themeColor}26`, color: themeColor }}>
+              <BookOpen size={20} />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">Acadêmico</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">Estudos</h1>
           </div>
           <p className="text-[#8E95A5] text-sm">
             Acompanhe seus prazos, provas e atividades.
@@ -79,8 +83,8 @@ export default function AcademicDashboard() {
         <OverviewCard 
           title="Total Pendente" 
           value={counts.total.toString()} 
-          icon={<BookOpen size={18} className="text-[#7C5CFC]" />} 
-          colorClass="text-[#7C5CFC]" 
+          icon={<BookOpen size={18} />} 
+          themeColor={themeColor}
         />
         <OverviewCard 
           title="Urgente (P1/P2)" 
@@ -103,9 +107,9 @@ export default function AcademicDashboard() {
       </div>
 
       {/* Main Layout: Unified Dashboard Panel */}
-      <div className="bg-[#12141C] border border-[#1E2230] rounded-3xl p-6 flex flex-col lg:flex-row gap-8 h-auto lg:h-[calc(100vh-280px)] min-h-[700px]">
+      <div className="bg-[#12141C] border border-[#1E2230] rounded-3xl p-6 flex flex-col lg:flex-row gap-8 flex-1 min-h-0">
         {/* Calendar Area (Left - Takes ~65%) */}
-        <div className="w-full lg:w-[65%] shrink-0 flex flex-col">
+        <div className="w-full lg:w-[65%] shrink-0 flex flex-col min-h-0">
           <CalendarGrid 
             currentDate={currentMonth}
             onMonthChange={handleMonthChange}
@@ -128,14 +132,14 @@ export default function AcademicDashboard() {
   );
 }
 
-function OverviewCard({ title, value, icon, colorClass }: { title: string, value: string, icon: React.ReactNode, colorClass: string }) {
+function OverviewCard({ title, value, icon, colorClass, themeColor }: { title: string, value: string, icon: React.ReactNode, colorClass?: string, themeColor?: string }) {
   return (
     <div className="p-4 rounded-xl bg-[#12141C] border border-[#1E2230] flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-[#8E95A5] uppercase tracking-wider">{title}</span>
-        {icon}
+        <div style={themeColor ? { color: themeColor } : {}}>{icon}</div>
       </div>
-      <div className={clsx("text-2xl font-bold", colorClass)}>
+      <div className={clsx("text-2xl font-bold", colorClass)} style={themeColor && !colorClass ? { color: themeColor } : {}}>
         {value}
       </div>
     </div>

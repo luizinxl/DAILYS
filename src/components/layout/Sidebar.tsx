@@ -19,8 +19,8 @@ import Logo from '@/components/common/Logo';
 import { useModuleColors, routeToKeyMap, defaultModuleColors } from '@/hooks/useModuleColors';
 const modules = [
   { to: '/', label: 'Início', icon: Home },
-  { to: '/academico', label: 'Tarefas Acadêmicas', icon: GraduationCap },
-  { to: '/casa', label: 'Tarefas Domésticas', icon: House },
+  { to: '/estudos', label: 'Estudos', icon: GraduationCap },
+  { to: '/tarefas', label: 'Tarefas', icon: House },
   { to: '/compras', label: 'Compras', icon: ShoppingCart },
   { to: '/financas', label: 'Finanças', icon: Wallet },
   { to: '/investimentos', label: 'Investimentos', icon: TrendingUp },

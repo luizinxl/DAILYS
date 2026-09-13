@@ -1,10 +1,16 @@
 import { Card } from '@/components/common/Card';
+import { useModuleColors } from '@/hooks/useModuleColors';
 
-export default function Page() {
+export default function Financas() {
+  const { colors, defaultModuleColors } = useModuleColors();
+  const themeColor = colors['financas'] || defaultModuleColors['financas'] || '#10B981';
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold tracking-tight text-white">Finanças</h1>
+        <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-2" style={{ color: themeColor }}>
+          Finanças
+        </h1>
         <p className="text-[#8E95A5] text-sm mt-1">Contas, cartões, orçamento, metas e projeções.</p>
       </div>
       <Card variant="financial" className="p-6">
