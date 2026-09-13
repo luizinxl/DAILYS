@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/common/Card';
+import { Home, CheckSquare, Wallet, TrendingUp, GraduationCap, Calendar, User, Home as House } from 'lucide-react';
 import { supabase } from '../../config/supabase';
+import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
 
 interface Receipt {
   id: string;
@@ -57,6 +59,22 @@ function IntegrationRow({ name, status, detail }: { name: string; status: 'ok' |
   );
 }
 
+const modulesColorList = [
+  { key: 'inicio', label: 'Início', icon: Home },
+  { key: 'tarefas', label: 'Tarefas', icon: CheckSquare },
+  { key: 'financas', label: 'Finanças', icon: Wallet },
+  { key: 'investimentos', label: 'Investimentos', icon: TrendingUp },
+  { key: 'academico', label: 'Acadêmico', icon: GraduationCap },
+  { key: 'agenda', label: 'Agenda', icon: Calendar },
+  { key: 'pessoal', label: 'Pessoal', icon: User },
+  { key: 'casa', label: 'Casa', icon: House },
+];
+
+const PREDEFINED_COLORS = [
+  '#7C5CFC', '#1C64EF', '#22C55E', '#14B8A6', 
+  '#F97316', '#EC4899', '#818CF8', '#F59E0B'
+];
+
 export default function Page() {
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [loadingReceipts, setLoadingReceipts] = useState(true);
@@ -64,6 +82,7 @@ export default function Page() {
   const [ocrStatus, setOcrStatus] = useState<string | null>(null);
   const [ocrError, setOcrError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { colors, updateColor, restoreDefaults } = useModuleColors();
 
   const fetchReceipts = useCallback(async () => {
     setLoadingReceipts(true);
@@ -158,6 +177,74 @@ export default function Page() {
               </span>
             </div>
           ))}
+        </div>
+      </Card>
+
+      <Card variant="default" className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-semibold text-white">Cores dos Módulos</h2>
+            <p className="text-xs text-[#8E95A5] mt-1">Personalize a cor de acento de cada módulo.</p>
+          </div>
+          <button 
+            onClick={restoreDefaults}
+            className="px-3 py-1.5 text-xs font-medium border border-[#282E42] rounded-lg text-[#8E95A5] hover:text-white hover:bg-[#202535] transition-colors"
+          >
+            Restaurar padrões
+          </button>
+        </div>
+        
+        <div className="space-y-4 mt-6">
+          {modulesColorList.map(mod => {
+            const currentColor = colors[mod.key] || defaultModuleColors[mod.key] || '#7C5CFC';
+            const isCustomColor = !PREDEFINED_COLORS.some(pc => pc.toUpperCase() === currentColor.toUpperCase());
+            
+            return (
+              <div key={mod.key} className="flex items-center justify-between border-b border-[#232735] pb-4 last:border-0 last:pb-0">
+                <div className="flex items-center gap-3">
+                  <div 
+                    className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+                    style={{ backgroundColor: `${currentColor}1A`, color: currentColor }}
+                  >
+                    <mod.icon size={16} />
+                  </div>
+                  <span className="text-sm font-medium text-white">{mod.label}</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {PREDEFINED_COLORS.map(c => (
+                    <button
+                      key={c}
+                      onClick={() => updateColor(mod.key, c)}
+                      className={`w-6 h-6 rounded-full transition-all border-2 ${currentColor.toUpperCase() === c.toUpperCase() ? 'border-white scale-110' : 'border-transparent hover:scale-110'}`}
+                      style={{ backgroundColor: c }}
+                      title={c}
+                    />
+                  ))}
+                  
+                  {/* Custom Color Input */}
+                  <div className={`relative w-6 h-6 rounded-full overflow-hidden transition-all border-2 ${isCustomColor ? 'border-white scale-110' : 'border-[#282E42] hover:scale-110'}`}>
+                     <div 
+                       className="absolute inset-0 flex items-center justify-center text-white font-bold" 
+                       style={{ 
+                         background: isCustomColor ? currentColor : 'conic-gradient(from 90deg, red, yellow, green, cyan, blue, magenta, red)', 
+                         pointerEvents: 'none',
+                         fontSize: '10px'
+                       }}
+                     >
+                       {isCustomColor ? '' : '+'}
+                     </div>
+                     <input 
+                       type="color"
+                       value={currentColor}
+                       onChange={(e) => updateColor(mod.key, e.target.value)}
+                       className="absolute inset-0 w-[200%] h-[200%] -top-1/2 -left-1/2 opacity-0 cursor-pointer"
+                     />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </Card>
 

@@ -10,11 +10,11 @@ import Compras from '@/pages/Household/Compras';
 import Agenda from '@/pages/Agenda';
 import Lembretes from '@/pages/Lembretes';
 import Configuracoes from '@/pages/Settings/Configuracoes';
-import { ThemeProvider } from '@/contexts/ThemeContext';
+import { ModuleColorsProvider } from '@/hooks/useModuleColors';
 
 export default function App() {
   return (
-    <ThemeProvider>
+    <ModuleColorsProvider>
       <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
@@ -30,6 +30,6 @@ export default function App() {
           <Route path="/configuracoes" element={<Configuracoes />} />
         </Routes>
       </Layout>
-    </ThemeProvider>
+    </ModuleColorsProvider>
   );
 }

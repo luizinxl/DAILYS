@@ -1,29 +1,25 @@
 import React from 'react';
 import { motion, Variants } from 'framer-motion';
 
-// Font import in index.html should use a geometric sans-serif like 'Outfit', 'Space Grotesk' or 'Syncopate',
-// but we'll use Inter/system defaults with some styling to make it look futuristic.
-
 export type LogoProps = {
   size?: 'sm' | 'lg';
   className?: string;
-  showWordmark?: boolean; // Controls if "MODUS" text is shown
+  showWordmark?: boolean;
 };
 
 const sizeClasses = {
   sm: {
     container: 'h-8',
     icon: 'w-6 h-6',
-    text: 'text-xl',
+    wordmark: 'h-4 ml-3',
   },
   lg: {
-    container: 'h-16 flex-col gap-4',
+    container: 'h-24 flex-col gap-6',
     icon: 'w-16 h-16',
-    text: 'text-5xl mt-2',
+    wordmark: 'h-8 mt-2',
   },
 };
 
-// SVG component for the split ring (used both as standalone icon and the 'O' in MODUS)
 const SplitRingIcon = ({ className }: { className?: string }) => (
   <svg
     viewBox="0 0 24 24"
@@ -32,19 +28,60 @@ const SplitRingIcon = ({ className }: { className?: string }) => (
     className={className}
     style={{ minWidth: '1em', minHeight: '1em' }}
   >
-    {/* Left half of the ring */}
     <path
-      d="M10 2.5 A9.5 9.5 0 0 0 10 21.5"
-      stroke="white"
-      strokeWidth="4"
-      strokeLinecap="square"
+      d="M10.5 2.5 A9.5 9.5 0 0 0 10.5 21.5"
+      stroke="currentColor"
+      strokeWidth="3.5"
+      strokeLinecap="butt"
     />
-    {/* Right half of the ring */}
     <path
-      d="M14 2.5 A9.5 9.5 0 0 1 14 21.5"
-      stroke="white"
-      strokeWidth="4"
-      strokeLinecap="square"
+      d="M13.5 2.5 A9.5 9.5 0 0 1 13.5 21.5"
+      stroke="currentColor"
+      strokeWidth="3.5"
+      strokeLinecap="butt"
+    />
+  </svg>
+);
+
+const WordmarkSVG = ({ className }: { className?: string }) => (
+  <svg
+    viewBox="0 0 114 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    {/* M */}
+    <path 
+      d="M 2 21 L 2 3 L 11 13 L 20 3 L 20 21" 
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" 
+    />
+    
+    {/* O (Split Ring - idêntico ao ícone, cortes verticais) */}
+    <path 
+      d="M 34.5 3.5 A 8.5 8.5 0 0 0 34.5 20.5" 
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="butt" 
+    />
+    <path 
+      d="M 37.5 3.5 A 8.5 8.5 0 0 1 37.5 20.5" 
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="butt" 
+    />
+    
+    {/* D */}
+    <path 
+      d="M 52 21 L 52 3 L 60 3 A 9 9 0 0 1 60 21 L 52 21" 
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" 
+    />
+    
+    {/* U */}
+    <path 
+      d="M 76 3 L 76 14 A 7 7 0 0 0 90 14 L 90 3" 
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" 
+    />
+    
+    {/* S */}
+    <path 
+      d="M 111 3 L 103 3 A 4.5 4.5 0 0 0 103 12 L 105 12 A 4.5 4.5 0 0 1 105 21 L 97 21" 
+      stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" 
     />
   </svg>
 );
@@ -53,12 +90,11 @@ const Logo: React.FC<LogoProps> = ({ size = 'sm', className, showWordmark = true
   const isLarge = size === 'lg';
   const classes = sizeClasses[size];
 
-  // For the large (splash) version, we animate the icon first, then fade in the text.
   const containerVariants: Variants = {
     hidden: { opacity: 1 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.8 },
+      transition: { staggerChildren: 0.6 },
     },
   };
 
@@ -73,8 +109,8 @@ const Logo: React.FC<LogoProps> = ({ size = 'sm', className, showWordmark = true
   };
 
   const textVariants: Variants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8 } },
+    hidden: { opacity: 0, x: -10 },
+    visible: { opacity: 1, x: 0, transition: { duration: 0.6, ease: "easeOut" } },
   };
 
   return (
@@ -84,24 +120,17 @@ const Logo: React.FC<LogoProps> = ({ size = 'sm', className, showWordmark = true
       initial="hidden"
       animate="visible"
     >
-      {/* If it's small, the icon is left of the wordmark. If large, it's above. */}
-      {(!showWordmark || isLarge) && (
-        <motion.div variants={iconVariants}>
+      {/* Icon */}
+      {(!showWordmark || isLarge || showWordmark) && (
+        <motion.div variants={iconVariants} className="flex-shrink-0 text-white">
           <SplitRingIcon className={classes.icon} />
         </motion.div>
       )}
 
+      {/* Wordmark Customizado em SVG */}
       {showWordmark && (
-        <motion.div
-          variants={textVariants}
-          className={`flex items-center font-bold tracking-[0.2em] text-white ${classes.text}`}
-          style={{ fontFamily: "'Space Grotesk', 'Syncopate', sans-serif" }}
-        >
-          {/* Custom M */}
-          <span style={{ letterSpacing: '0.15em' }}>M</span>
-          {/* The O is replaced by the icon */}
-          <SplitRingIcon className="mx-1.5 h-[0.8em] w-[0.8em] mb-[0.05em]" />
-          <span>DUS</span>
+        <motion.div variants={textVariants} className="text-white flex-shrink-0 flex items-center">
+          <WordmarkSVG className={classes.wordmark} />
         </motion.div>
       )}
     </motion.div>

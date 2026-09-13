@@ -101,7 +101,7 @@ export function CalendarGrid({
       <div className="grid grid-cols-7 gap-3 flex-1">
         {days.map((date, i) => {
           if (!date) {
-            return <div key={`empty-${i}`} className="min-h-[100px] lg:min-h-[120px] bg-[#1A1D27]/30 rounded-2xl border border-[#1E2230]/50" />;
+            return <div key={`empty-${i}`} className="h-32 lg:h-40 bg-[#1A1D27]/30 rounded-2xl border border-[#1E2230]/50" />;
           }
 
           const dateStr = date.toISOString().substring(0, 10);
@@ -115,7 +115,7 @@ export function CalendarGrid({
               key={dateStr}
               onClick={() => onSelectDate(dateStr)}
               className={clsx(
-                'min-h-[100px] lg:min-h-[120px] rounded-2xl p-3 flex flex-col items-start justify-start relative transition-all border text-left overflow-hidden group',
+                'h-32 lg:h-40 rounded-2xl p-3 flex flex-col items-start justify-start relative transition-all border text-left overflow-hidden group',
                 isSelected
                   ? 'bg-gradient-to-br from-[#7C5CFC] to-[#5C3CE0] border-[#9074FF] text-white shadow-lg shadow-[#7C5CFC]/25'
                   : 'bg-[#1A1D27] border-[#282E42] hover:border-[#384058] hover:bg-[#1E2230]',
