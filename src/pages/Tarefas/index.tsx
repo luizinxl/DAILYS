@@ -5,14 +5,14 @@ import {
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useTasks, TaskItem } from '@/hooks/useTasks';
-import { useModuleColors } from '@/hooks/useModuleColors';
+import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
 import Card from '@/components/common/Card';
 
 type FilterType = 'today' | 'important' | 'planned' | 'all' | 'completed';
 
 export default function TarefasDashboard() {
   const { tasks, loading, error, addTask, updateTask, toggleDone, deleteTask } = useTasks();
-  const { colors, defaultModuleColors } = useModuleColors();
+  const { colors } = useModuleColors();
   const themeColor = colors['casa'] || defaultModuleColors['casa'] || '#7C5CFC';
 
   const [activeFilter, setActiveFilter] = useState<FilterType>('today');

@@ -1,8 +1,8 @@
 import { Card } from '@/components/common/Card';
-import { useModuleColors } from '@/hooks/useModuleColors';
+import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
 
 export default function Financas() {
-  const { colors, defaultModuleColors } = useModuleColors();
+  const { colors } = useModuleColors();
   const themeColor = colors['financas'] || defaultModuleColors['financas'] || '#10B981';
 
   return (

@@ -1,8 +1,8 @@
 import { Card } from '@/components/common/Card';
-import { useModuleColors } from '@/hooks/useModuleColors';
+import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
 
 export default function Page() {
-  const { colors, defaultModuleColors } = useModuleColors();
+  const { colors } = useModuleColors();
   const themeColor = colors['lembretes'] || defaultModuleColors['lembretes'] || '#F43F5E';
 
   return (

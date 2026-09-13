@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAcademic } from '@/hooks/useAcademic';
-import { useModuleColors } from '@/hooks/useModuleColors';
+import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
 import { CalendarGrid } from './components/CalendarGrid';
 import { DailyPanel } from './components/DailyPanel';
 import { BookOpen, AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function AcademicDashboard() {
-  const { colors, defaultModuleColors } = useModuleColors();
+  const { colors } = useModuleColors();
   const themeColor = colors['academico'] || defaultModuleColors['academico'] || '#7C5CFC';
 
   const {

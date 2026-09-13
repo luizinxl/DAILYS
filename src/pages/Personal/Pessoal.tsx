@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Card } from '@/components/common/Card';
 import { usePersonal, type PersonalStatus } from '../../hooks/usePersonal';
-import { useModuleColors } from '@/hooks/useModuleColors';
+import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
 
 const statusLabel: Record<PersonalStatus, string> = {
   em_andamento: 'Em andamento',
@@ -24,7 +24,7 @@ function ProgressBar({ value, color }: { value: number, color: string }) {
 }
 
 export default function Page() {
-  const { colors, defaultModuleColors } = useModuleColors();
+  const { colors } = useModuleColors();
   const themeColor = colors['pessoal'] || defaultModuleColors['pessoal'] || '#F43F5E';
 
   const { courses, goals, loading, error, addCourse, deleteCourse, addGoal, deleteGoal, updateCourse, updateGoal } = usePersonal();

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Trash2, Search, Plus, CheckCircle2, Circle } from 'lucide-react';
 import Card from '@/components/common/Card';
 import { useShoppingList } from '@/hooks/useShoppingList';
-import { useModuleColors } from '@/hooks/useModuleColors';
+import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
 
 function formatCurrency(value: number) {
   return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -21,7 +21,7 @@ export default function Compras() {
     lookupPrice,
   } = useShoppingList();
 
-  const { colors, defaultModuleColors } = useModuleColors();
+  const { colors } = useModuleColors();
   const themeColor = colors['compras'] || defaultModuleColors['compras'] || '#F59E0B';
 
   const [newItemName, setNewItemName] = useState('');

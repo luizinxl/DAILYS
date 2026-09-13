@@ -13,7 +13,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useModuleColors } from '@/hooks/useModuleColors';
+import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -71,7 +71,7 @@ const performanceData = [
 ];
 
 export default function Dashboard() {
-  const { colors, defaultModuleColors } = useModuleColors();
+  const { colors } = useModuleColors();
   const themeColor = colors['inicio'] || defaultModuleColors['inicio'] || '#7C5CFC';
 
   return (

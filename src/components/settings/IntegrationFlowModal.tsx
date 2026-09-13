@@ -7,7 +7,9 @@ import {
   Position, 
   useNodesState, 
   useEdgesState,
-  EdgeTypes
+  EdgeTypes,
+  Node,
+  Edge
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { X, Database, Link, Briefcase, Mail, Calendar, Bell, Bot, Server, Smartphone, ExternalLink, Globe, Zap, Activity, CheckCircle, GitFork } from 'lucide-react';
@@ -50,8 +52,8 @@ interface IntegrationFlowModalProps {
 }
 
 export function IntegrationFlowModal({ isOpen, onClose, integrationKey }: IntegrationFlowModalProps) {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   
   // Update state when modal opens or key changes
   useEffect(() => {

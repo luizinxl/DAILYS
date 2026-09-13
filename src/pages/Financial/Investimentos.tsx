@@ -1,7 +1,7 @@
 import { Card } from '@/components/common/Card';
 import { useInvestments } from '../../hooks/useInvestments';
 import { useMarketOverview } from '../../hooks/useMarketOverview';
-import { useModuleColors } from '@/hooks/useModuleColors';
+import { useModuleColors, defaultModuleColors } from '@/hooks/useModuleColors';
 import { PortfolioAllocationChart } from '../../components/financial/PortfolioAllocationChart';
 import { PortfolioEvolutionChart } from '../../components/financial/PortfolioEvolutionChart';
 import { PositionHistoryChart } from '../../components/financial/PositionHistoryChart';
@@ -19,7 +19,7 @@ export default function Page() {
   const { positions, portfolioSummary, loading, error, refresh } = useInvestments();
   const { overview, loading: overviewLoading, error: overviewError, refresh: refreshOverview } = useMarketOverview();
 
-  const { colors, defaultModuleColors } = useModuleColors();
+  const { colors } = useModuleColors();
   const themeColor = colors['investimentos'] || defaultModuleColors['investimentos'] || '#3B82F6';
 
   const handleRefresh = () => {
