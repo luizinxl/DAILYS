@@ -1,5 +1,5 @@
-﻿// Edge Function: pluggy-sync
-// Sincroniza contas, cartÃµes, transaÃ§Ãµes e investimentos de um Item
+// Edge Function: pluggy-sync
+// Sincroniza contas, cartões, transações e investimentos de um Item
 // da Pluggy para o Supabase. Usa a service_role key (backend) para gravar.
 //
 // Deploy: supabase functions deploy pluggy-sync
@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
   try {
     const { userId, connectionId, pluggyItemId } = await req.json();
-    if (!userId || !pluggyItemId) throw new Error('userId e pluggyItemId sÃ£o obrigatÃ³rios');
+    if (!userId || !pluggyItemId) throw new Error('userId e pluggyItemId são obrigatórios');
 
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) throw new Error('Authorization header ausente.');
@@ -51,8 +51,8 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } },
     );
     const { data: { user: authUser }, error: authError } = await supabaseAuth.auth.getUser();
-    if (authError || !authUser) throw new Error('Token JWT inválido.');
-    if (authUser.id !== userId) throw new Error('Usuário não autorizado para este userId.');
+    if (authError || !authUser) throw new Error('Token JWT inv�lido.');
+    if (authUser.id !== userId) throw new Error('Usu�rio n�o autorizado para este userId.');
 
     const apiKey = await getPluggyApiKey();
 
@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
       });
       r === 'created' ? created++ : updated++;
 
-      // 1b) CartÃ£o de crÃ©dito
+      // 1b) Cartão de crédito
       if (acc.type === 'CREDIT' && acc.creditData) {
         const cd = acc.creditData;
         await upsertByKey('credit_cards', 'pluggy_account_id', acc.id, {
@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      // 1c) TransaÃ§Ãµes da conta
+      // 1c) Transações da conta
       const txs = (await pluggyFetch(
         `/transactions?accountId=${acc.id}&pageSize=500`, apiKey
       )).results ?? [];
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 3) Atualiza status da conexÃ£o
+    // 3) Atualiza status da conexão
     if (connectionId) {
       await supabase.from('pluggy_connections').update({
         status: 'UPDATED',

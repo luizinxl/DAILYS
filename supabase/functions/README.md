@@ -1,4 +1,4 @@
-# Edge Functions — dailyS
+# Edge Functions — MODUS
 
 ## Pré-requisitos
 ```bash

@@ -4,7 +4,7 @@ import { Search, Bell } from 'lucide-react';
 
 export function Header() {
   const { user } = useAuth();
-  const initial = (user?.email ?? 'dailyS')[0].toUpperCase();
+  const initial = (user?.email ?? 'MODUS')[0].toUpperCase();
 
   return (
     <header className="flex items-center justify-between px-6 md:px-8 py-3.5 bg-[#0E1017] border-b border-[#1E2230] transition-colors">

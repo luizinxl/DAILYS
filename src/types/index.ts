@@ -1,4 +1,4 @@
-// ==== Tipos centrais do dailyS ====
+// ==== Tipos centrais do MODUS ====
 
 export type Priority = 'P1_critical' | 'P2_high' | 'P3_normal' | 'P4_low';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'overdue' | 'cancelled';

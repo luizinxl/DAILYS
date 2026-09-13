@@ -1,5 +1,5 @@
-Ôªø// Deploy: supabase functions deploy pluggy-connect-token
-// Chamada (frontend): POST { itemId? } com header Authorization: Bearer <jwt do usu√°rio> -> { connectToken }
+// Deploy: supabase functions deploy pluggy-connect-token
+// Chamada (frontend): POST { itemId? } com header Authorization: Bearer <jwt do usu·rio> -> { connectToken }
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { getPluggyApiKey, pluggyFetch } from '../_shared/pluggy.ts';
@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Autentica√ß√£o: exige um usu√°rio Supabase v√°lido antes de emitir o connect token
+    // AutenticaÁ„o: exige um usu·rio Supabase v·lido antes de emitir o connect token
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Authorization header ausente.' }), {
@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     );
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Token JWT inv√°lido.' }), {
+      return new Response(JSON.stringify({ error: 'Token JWT inv·lido.' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -38,12 +38,12 @@ Deno.serve(async (req) => {
       const body = await req.json();
       itemId = body?.itemId;
     } catch {
-      // sem body √© ok (primeira conex√£o)
+      // sem body È ok (primeira conex„o)
     }
 
     const apiKey = await getPluggyApiKey();
 
-    // itemId opcional: passado quando o usu√°rio est√° reconectando um Item
+    // itemId opcional: passado quando o usu·rio est· reconectando um Item
     const payload = itemId ? { itemId } : {};
     const data = await pluggyFetch('/connect_token', apiKey, {
       method: 'POST',

@@ -1,5 +1,5 @@
 // ============================================================
-// dailyS — Hook: useAcademic
+// MODUS — Hook: useAcademic
 // ============================================================
 // Hook customizado para consumir dados acadêmicos do Supabase.
 // Segue o padrão de useInvestments: um hook por domínio.

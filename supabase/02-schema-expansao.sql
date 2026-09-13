@@ -1,5 +1,5 @@
 -- ============================================================
--- dailyS — EXPANSÃO DO SCHEMA
+-- MODUS — EXPANSÃO DO SCHEMA
 -- Adiciona: Investimentos, Cartões, Metas, Projeções,
 -- Integração Pluggy (Open Finance), Área Pessoal,
 -- Progresso Acadêmico (sem Antigravity), Resumos de Email

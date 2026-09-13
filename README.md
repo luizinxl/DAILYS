@@ -1,4 +1,4 @@
-# dailyS
+# MODUS
 
 Hub pessoal que reúne, num só lugar: **acadêmico**, **financeiro**,
 **investimentos**, **doméstico** e **desenvolvimento pessoal**.
@@ -21,10 +21,10 @@ npm run dev                  # http://localhost:5173
 ```bash
 git init
 git add .
-git commit -m "chore: scaffold inicial do dailyS"
+git commit -m "chore: scaffold inicial do MODUS"
 git branch -M main
-# crie um repo vazio em github.com/new (nome: dailys), depois:
-git remote add origin https://github.com/SEU_USUARIO/dailys.git
+# crie um repo vazio em github.com/new (nome: MODUS), depois:
+git remote add origin https://github.com/SEU_USUARIO/MODUS.git
 git push -u origin main
 ```
 

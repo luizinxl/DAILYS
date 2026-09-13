@@ -189,7 +189,7 @@ export default function Dashboard() {
               <div className="flex items-center gap-2 bg-[#121421]/90 border border-[#2B2C46] rounded-xl p-1.5 focus-within:border-[#7C5CFC]/70 transition-colors">
                 <input
                   type="text"
-                  placeholder="Pergunte qualquer coisa ao dailyS..."
+                  placeholder="Pergunte qualquer coisa ao MODUS..."
                   className="bg-transparent text-xs text-white placeholder-[#646B80] px-3 py-1.5 w-full outline-none"
                   readOnly
                 />

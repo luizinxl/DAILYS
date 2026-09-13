@@ -1,5 +1,5 @@
 // ============================================================
-// dailyS — Serviço de Dados Acadêmicos (Frontend)
+// MODUS — Serviço de Dados Acadêmicos (Frontend)
 // ============================================================
 // Lê academic_tasks e academic_sync_state do Supabase.
 // Usado pelo hook useAcademic para alimentar a UI.

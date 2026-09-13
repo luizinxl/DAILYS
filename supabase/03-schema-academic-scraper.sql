@@ -1,5 +1,5 @@
 -- ============================================================
--- dailyS — EXPANSÃO DO SCHEMA PARA SCRAPER ACADÊMICO
+-- MODUS — EXPANSÃO DO SCHEMA PARA SCRAPER ACADÊMICO
 -- ============================================================
 -- Atualiza a tabela academic_tasks existente e adiciona
 -- as colunas necessárias para sincronização com o AVA Moodle.

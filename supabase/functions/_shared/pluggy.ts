@@ -1,4 +1,4 @@
-﻿const PLUGGY_BASE = 'https://api.pluggy.ai';
+const PLUGGY_BASE = 'https://api.pluggy.ai';
 
 let cachedApiKey: string | null = null;
 let cachedApiKeyExpiresAt = 0;
@@ -32,7 +32,7 @@ export async function getPluggyApiKey(): Promise<string> {
   const clientId = Deno.env.get('PLUGGY_CLIENT_ID');
   const clientSecret = Deno.env.get('PLUGGY_CLIENT_SECRET');
   if (!clientId || !clientSecret) {
-    throw new Error('PLUGGY_CLIENT_ID/SECRET não configurados nos secrets');
+    throw new Error('PLUGGY_CLIENT_ID/SECRET n�o configurados nos secrets');
   }
 
   return withRetry(async () => {

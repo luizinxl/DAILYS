@@ -1,9 +1,9 @@
 {
-  "name": "dailys",
+  "name": "modus",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "dailyS — hub pessoal: acadêmico, financeiro, doméstico e desenvolvimento",
+  "description": "MODUS — hub pessoal: acadêmico, financeiro, doméstico e desenvolvimento",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
